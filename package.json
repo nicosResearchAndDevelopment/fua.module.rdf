@@ -1,0 +1,16 @@
+{
+  "name": "fua.module.rdf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/module.rdf.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@git02.int.nsc.ag:10022/Research/fua/lib/module.rdf.git"
+  },
+  "keywords": ["rdf", "rdflib", "rdf-ext", "rdf-js", "jsonld", "turtle"],
+  "author": "spetrac@nicos-ag.com",
+  "license": ""
+}

@@ -1,0 +1,20 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/stuff/1.0/> .
+
+ex:HelloWorldShape
+	a sh:NodeShape ;
+	sh:targetClass ex:HelloWorld ;
+	sh:property [
+		sh:path rdfs:label ;
+		sh:maxCount 1 ;
+		sh:datatype xsd:string ;
+		sh:pattern "\\S+" ;
+	] ;
+	sh:property [
+		sh:path rdfs:comment ;
+		sh:maxCount 1 ;
+		sh:datatype xsd:string ;
+	] .
