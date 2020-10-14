@@ -1,14 +1,10 @@
 const
-    { loadDataset, loadGraph } = require('../src/module.rdf.js');
+    Dataset = require('../src/module.rdf.Dataset.js');
 
 (async (/* async-iife */) => {
 
-    const dataset = await loadDataset(__dirname, 'data', 'my-data.ttl');
-    console.log(Object.values(dataset._entities).join("\n"));
-    // console.log(dataset);
-
-    // const graph = await loadGraph(__dirname, 'data', 'my-data.ttl');
-    // console.log(graph);
+    const dataset = new Dataset();
+    console.log(dataset);
 
     debugger;
 
