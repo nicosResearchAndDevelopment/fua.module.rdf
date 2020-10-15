@@ -1,8 +1,8 @@
 const
     { promisify } = require('util'),
-    stream = require('stream'),
-    { Readable, Writable } = stream,
-    pipeline = promisify(stream.pipeline),
+    Stream = require('stream'),
+    { Readable, Writable } = Stream,
+    pipeline = promisify(Stream.pipeline),
     { fileURLToPath, pathToFileURL } = require('url'),
     { join: joinPath } = require('path'),
     { createReadStream } = fs = require('fs'),
@@ -14,6 +14,8 @@ const
     jsonld = require('jsonld'),
     N3 = require('n3'),
     fetch = require('node-fetch');
+
+// TODO make a loadTTLs-alternative!!!
 
 /**
  * @typedef {rdfLib.DataFactory} DataFactory http://rdf.js.org/data-model-spec/#datafactory-interface
@@ -30,47 +32,55 @@ const
 
 /**
  * https://rdf.js.org/dataset-spec/
+ * @class
  * @extends N3.Store 
  */
-module.exports = class Dataset extends N3.Store {
+class Dataset extends N3.Store {
 
     /**
      * @param {Array<Quad>} quads
+     * @constructs Dataset
      */
     constructor(quads = []) {
         super(quads, {
             factory: rdfLib.DataFactory
         });
+    } // Dataset#constructor
+
+    [Symbol.iterator]() {
+        return super.getQuads()[Symbol.iterator]();
     }
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-add
      * @param {Quad} quad
-     * @returns {Dataset}
+     * @returns {Dataset} this
      */
     add(quad) {
         super.addQuad(quad);
         return this;
-    }
+    } // Dataset#add
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-delete
      * @param {Quad} quad
-     * @returns {Dataset}
+     * @returns {Dataset} this
      */
     delete(quad) {
         super.removeQuad(quad);
         return this;
-    }
+    } // Dataset#delete
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-has
      * @param {Quad} quad
-     * @returns {Boolean}
+     * @returns {Boolean} true, if this contains the quad
      */
     has(quad) {
-        throw new Error("not implemented yet"); // TODO
-    }
+        return super.countQuads(
+            quad.subject, quad.predicate, quad.object, quad.graph
+        ) > 0;
+    } // Dataset#has
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-match
@@ -78,9 +88,220 @@ module.exports = class Dataset extends N3.Store {
      * @param {Term} predicate
      * @param {Term} object
      * @param {Term} graph
+     * @returns {Dataset} new dataset with matching quads
      */
     match(subject, predicate, object, graph) {
-        throw new Error("not implemented yet"); // TODO
-    }
+        return new Dataset(super.getQuads(subject, predicate, object, graph));
+    } // Dataset#match
 
-};
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-addall
+     * @param {Array<Quad>} quads 
+     * @returns {Dataset} this
+     */
+    addAll(quads) {
+        super.addQuads(quads);
+        return this;
+    } // Dataset#addAll
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-contains
+     * @param {Dataset} dataset 
+     * @returns {Boolean} true, if dataset is subset of this
+     */
+    contains(dataset) {
+        return dataset.every(quad => this.has(quad));
+    } // Dataset#contains
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-deletematches
+     * @param {Term} subject
+     * @param {Term} predicate
+     * @param {Term} object
+     * @param {Term} graph
+     * @returns {Dataset} this
+     */
+    deleteMatches(subject, predicate, object, graph) {
+        super.removeMatches(subject, predicate, object, graph);
+        return this;
+    } // Dataset#deleteMatches
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-difference
+     * @param {Dataset} dataset 
+     * @returns {Dataset} new dataset without the quads of the given dataset
+     */
+    difference(dataset) {
+        return this.filter(quad => !dataset.has(quad));
+    } // Dataset#difference
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-equals
+     * @param {Dataset} dataset 
+     * @returns {Boolean} true, if graph structure is equal
+     */
+    equals(dataset) {
+        return this.size === dataset.size
+            && this.contains(dataset)
+            && dataset.contains(this);
+    } // Dataset#equals
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-every
+     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee 
+     * @returns {Boolean} true, if iteratee never returns false
+     */
+    every(iteratee) {
+        return super.every(
+            quad => iteratee(quad, this)
+        );
+    } // Dataset#every
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-filter
+     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee 
+     * @returns {Dataset} new dataset with all passing quads
+     */
+    filter(iteratee) {
+        return new Dataset(
+            super.getQuads().filter(
+                quad => iteratee(quad, this)
+            )
+        );
+    } // Dataset#filter
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-foreach
+     * @param {(quad: Quad, dataset: Dataset) => *} iteratee 
+     * @returns {Dataset} this
+     */
+    forEach(iteratee) {
+        super.forEach(
+            quad => iteratee(quad, this)
+        );
+        return this;
+    } // Dataset#forEach
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-import
+     * @param {Readable<Quad>} stream 
+     * @returns {Promise}
+     */
+    import(stream) {
+        return new Promise((resolve, reject) => {
+            stream.on('end', resolve);
+            stream.on('error', reject);
+            super.import(stream);
+        });
+    } // Dataset#import
+
+    /**
+     * @param {Readable<String<"text/turtle">>} stream 
+     * @returns {Promise}
+     */
+    importTTL(stream) {
+        const parser = new N3.StreamParser({
+            factory: rdfLib.DataFactory
+        });
+        return this.import(parser.import(stream));
+    } // Dataset#importTTL
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-intersection
+     * @param {Dataset} dataset 
+     * @returns {Dataset} new dataset with all quads that are in both datasets
+     */
+    intersection(dataset) {
+        return this.filter(quad => dataset.has(quad));
+    } // Dataset#intersection
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-map
+     * @param {(quad: Quad, dataset: Dataset) => Quad} iteratee 
+     * @returns {Dataset} new dataset with mapped quads
+     */
+    map(iteratee) {
+        return new Dataset(
+            super.getQuads().map(
+                quad => iteratee(quad, this)
+            )
+        );
+    } // Dataset#map
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-reduce
+     * @param {(acc: *, quad: Quad, dataset: Dataset) => *} iteratee 
+     * @param {*} initialValue
+     * @returns {*}
+     */
+    reduce(iteratee, initialValue) {
+        return super.getQuads().reduce(
+            (acc, val) => iteratee(acc, val, this),
+            initialValue
+        );
+    } // Dataset#reduce
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-some
+     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee 
+     * @returns {Boolean} true, if iteratee once returns true
+     */
+    some(iteratee) {
+        return super.some(
+            quad => iteratee(quad, this)
+        );
+    } // Dataset#some
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-toarray
+     * @returns {Array<Quad>}
+     */
+    toArray() {
+        return super.getQuads();
+    } // Dataset#toArray
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-tocanonical
+     * @returns {String}
+     */
+    toCanonical() {
+        // TODO
+        throw new Error("curently not implemented");
+    } // Dataset#toCanonical
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-tostream
+     * @returns {Readable<Quad>}
+     */
+    toStream() {
+        return super.match();
+    } // Dataset#toStream
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-tostring
+     * @returns {String}
+     */
+    toString() {
+        return super.getQuads().map(
+            quad => quad.toNQ()
+        ).join("\n");
+    } // Dataset#toString
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-union
+     * @param {Dataset} dataset 
+     * @returns {Dataset} new dataset with all quads of both datasets
+     */
+    union(dataset) {
+        return new Dataset(
+            super.getQuads().concat(
+                dataset
+                    .difference(this)
+                    .toArray()
+            )
+        );
+    } // Dataset#union
+
+} // Dataset
+
+module.exports = Dataset;

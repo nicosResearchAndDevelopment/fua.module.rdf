@@ -1,8 +1,12 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix ex: <http://example.org/stuff/1.0/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 ex:Hello a ex:HelloWorld ;
     rdfs:label "HelloWorld" ;
     rdfs:comment "Hello to the world!" ;
     rdfs:comment "This is a second comment and should not be conform." .
+
+ex:
+    owl:imports <file:./my-shapes.ttl> .
