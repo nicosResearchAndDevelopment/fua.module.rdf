@@ -28,6 +28,8 @@ const
  * @typedef {rdfLib.Collection} Collection
  * @typedef {rdfLib.Namespace} Namespace
  * @typedef {String} TTL A string of content type 'text/turtle'.
+ * @typedef {String} URI Unique Resource Identifier
+ * @typedef {String} Prefix
  */
 
 /**
@@ -284,6 +286,7 @@ class Dataset extends n3.Store {
     /**
      * https://rdf.js.org/dataset-spec/#dfn-tostring
      * @returns {String}
+     * TODO multiline literals are parsed invalid
      */
     toString() {
         return super.getQuads().map(
@@ -327,6 +330,163 @@ class Dataset extends n3.Store {
         const reader = createReadStream(filepath);
         return this.importTTL(reader);
     } // Dataset#loadTTL
+
+    /**
+     * @param {Object<Prefix, URI>} [context={}]
+     * @returns {Map<URI, Object>}
+     */
+    generateGraph(context = {}) {
+        const
+            /** @type {Map<URI, Object>} */
+            subjectMap = new Map(),
+            /** @type {Map<URI, { "@id": String, [missingRef]: Array<[URI, URI]> }>} */
+            missingMap = new Map(),
+            /** @type {Map<URI, Object>} */
+            blankMap = new Map(),
+            /** @type {Map<URI, URI>} */
+            idMap = new Map([
+                ['http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '@type']
+            ]),
+            /** @type {Map<Prefix, URI>} */
+            prefixMap = new Map(Object.entries(context));
+
+        /**
+         * This function prefixes uris and caches them for this generation.
+         * @param {URI} uri 
+         * @returns {URI}
+         */
+        function _prefixId(uri) {
+            // return if already in idMap
+            if (idMap.has(uri))
+                return idMap.get(uri);
+
+            // search all prefixes
+            for (let [prefix, target] of prefixMap.entries()) {
+                // if uri starts with a prefix, save entry in idMap and return
+                if (uri.startsWith(target)) {
+                    let short = prefix + ":" + uri.substring(target.length);
+                    idMap.set(uri, short);
+                    return short;
+                }
+            }
+
+            // if not returned already, there is no prefix for this uri
+            idMap.set(uri, uri);
+            return uri;
+        } // _prefixId
+
+        /**
+         * This function takes a term, returns the corresponding value in jsonld and caches any nodes.
+         * @param {Term} term 
+         * @returns {{"@id": String} | Object | String}
+         */
+        function _parseTerm(term) {
+            let nodeId, node;
+            switch (term.termType) {
+                case 'NamedNode':
+                    nodeId = _prefixId(term.value);
+                    node = subjectMap.get(nodeId) || missingMap.get(nodeId);
+                    if (!node) {
+                        node = { '@id': nodeId };
+                        missingMap.set(nodeId, node);
+                    }
+                    break;
+
+                case 'BlankNode':
+                    nodeId = term.value;
+                    node = blankMap.get(nodeId);
+                    if (!node) {
+                        node = {};
+                        // node = { '@id': nodeId };
+                        blankMap.set(nodeId, node);
+                    }
+                    break;
+
+                case 'Literal':
+                    if (term.lang) {
+                        node = {
+                            '@value': term.value,
+                            '@language': term.lang
+                        };
+                    } else if (term.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
+                        node = {
+                            '@value': term.value,
+                            '@type': _prefixId(term.datatype.value)
+                        };
+                    } else {
+                        node = term.value;
+                    }
+                    break;
+
+                default:
+                    node = null;
+                    break;
+            }
+            return node;
+        } // _parseTerm
+
+        // iterates over all quads, parses their terms and meshes them
+        for (let { subject, predicate, object, graph } of this) {
+            const
+                subj = _parseTerm(subject),
+                { '@id': subjId } = subj,
+                pred = _prefixId(predicate.value),
+                obj = _parseTerm(object);
+
+            // add object to subject
+            if (Array.isArray(subj[pred])) {
+                subj[pred].push(obj);
+            } else if (Reflect.has(subj, pred)) {
+                subj[pred] = [subj[pred], obj];
+            } else {
+                subj[pred] = obj;
+            }
+
+            // move from missingMap to subjectMap, if necessary
+            if (missingMap.has(subjId)) {
+                missingMap.delete(subjId);
+                subjectMap.set(subjId, subj);
+            }
+
+        }
+
+        return subjectMap;
+    } // Dataset#generateGraph
+
+    // /**
+    //  * @param {Object<Prefix, URI>} [context]
+    //  * @returns {JSON}
+    //  */
+    // toJSON(context) {
+    //     const
+    //         graph = [],
+    //         index = new Map(),
+    //         result = { '@context': context || {}, '@graph': graph };
+
+    //     // TODO
+
+    //     return result;
+    // } // Dataset#toJSON
+
+    // /**
+    //  * @param {Object<Prefix, URI>} [context]
+    //  * @returns {Map<URI, Object>}
+    //  */
+    // toMap(context) {
+    //     const
+    //         { '@graph': graph } = this.toJSON(context),
+    //         resultMap = new Map(graph.map(obj => [obj['@id'], obj])),
+    //         getValue = (obj) => obj && obj['@id'] ? resultMap.get(obj['@id']) || obj : obj;
+
+    //     // meshing the objects in the result map
+    //     for (let obj of resultMap) {
+    //         for (let [key, value] of Object.entries(obj)) {
+    //             obj[key] = Array.isArray(value) ? value.map(getValue) : getValue(value);
+    //         }
+    //     }
+
+    //     return resultMap;
+    // } // Dataset#toMap
 
 } // Dataset
 
