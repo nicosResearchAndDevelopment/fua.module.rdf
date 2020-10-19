@@ -3,19 +3,18 @@ const
     Stream = require('stream'),
     { Readable, Writable } = Stream,
     pipeline = promisify(Stream.pipeline),
-    { fileURLToPath, pathToFileURL } = require('url'),
-    { join: joinPath } = require('path'),
-    { createReadStream } = fs = require('fs'),
+    fs = require('fs'),
+    { createReadStream } = fs,
     readFile = promisify(fs.readFile),
-    rdfExt = require('rdf-ext'),
-    ParserN3 = require('@rdfjs/parser-n3'),
+    { join: joinPath } = require('path'),
+    { fileURLToPath, pathToFileURL } = require('url'),
+    // rdfExt = require('rdf-ext'),
+    // ParserN3 = require('@rdfjs/parser-n3'),
+    fetch = require('node-fetch'),
     SHACLValidator = require('rdf-validate-shacl'),
-    rdfLib = require('rdflib'),
     jsonld = require('jsonld'),
-    N3 = require('n3'),
-    fetch = require('node-fetch');
-
-// TODO make a loadTTLs-alternative!!!
+    rdfLib = require('rdflib'),
+    n3 = require('n3');
 
 /**
  * @typedef {rdfLib.DataFactory} DataFactory http://rdf.js.org/data-model-spec/#datafactory-interface
@@ -28,14 +27,15 @@ const
  * @typedef {rdfLib.Variable} Variable http://rdf.js.org/data-model-spec/#variable-interface
  * @typedef {rdfLib.Collection} Collection
  * @typedef {rdfLib.Namespace} Namespace
+ * @typedef {String} TTL A string of content type 'text/turtle'.
  */
 
 /**
- * https://rdf.js.org/dataset-spec/
+ * https://rdf.js.org/dataset-spec/#dfn-dataset
  * @class
- * @extends N3.Store 
+ * @extends n3.Store 
  */
-class Dataset extends N3.Store {
+class Dataset extends n3.Store {
 
     /**
      * @param {Array<Quad>} quads
@@ -47,9 +47,20 @@ class Dataset extends N3.Store {
         });
     } // Dataset#constructor
 
+    //#region RDF/JS: DatasetCore
+
+    /**
+     * https://rdf.js.org/dataset-spec/#dfn-size
+     * @type {Number}
+     */
+    get size() {
+        return super.size;
+    } // Dataset#size
+
     [Symbol.iterator]() {
+        // TODO iterate more efficiently without creating an array
         return super.getQuads()[Symbol.iterator]();
-    }
+    } // Dataset#[Symbol.iterator]
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-add
@@ -93,6 +104,10 @@ class Dataset extends N3.Store {
     match(subject, predicate, object, graph) {
         return new Dataset(super.getQuads(subject, predicate, object, graph));
     } // Dataset#match
+
+    //#endregion RDF/JS: DatasetCore
+
+    //#region RDF/JS: Dataset
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-addall
@@ -196,17 +211,6 @@ class Dataset extends N3.Store {
     } // Dataset#import
 
     /**
-     * @param {Readable<String<"text/turtle">>} stream 
-     * @returns {Promise}
-     */
-    importTTL(stream) {
-        const parser = new N3.StreamParser({
-            factory: rdfLib.DataFactory
-        });
-        return this.import(parser.import(stream));
-    } // Dataset#importTTL
-
-    /**
      * https://rdf.js.org/dataset-spec/#dfn-intersection
      * @param {Dataset} dataset 
      * @returns {Dataset} new dataset with all quads that are in both datasets
@@ -301,6 +305,28 @@ class Dataset extends N3.Store {
             )
         );
     } // Dataset#union
+
+    //#endregion RDF/JS: Dataset
+
+    /**
+     * @param {Readable<TTL>} stream 
+     * @returns {Promise}
+     */
+    async importTTL(stream) {
+        const parser = new n3.StreamParser({
+            factory: rdfLib.DataFactory
+        });
+        return this.import(parser.import(stream));
+    } // Dataset#importTTL
+
+    /**
+     * @param {String} filepath 
+     * @returns {Promise}
+     */
+    async loadTTL(filepath) {
+        const reader = createReadStream(filepath);
+        return this.importTTL(reader);
+    } // Dataset#loadTTL
 
 } // Dataset
 
