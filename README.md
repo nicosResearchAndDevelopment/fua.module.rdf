@@ -21,11 +21,15 @@ dataset = new Dataset(quads?: Quad): Dataset
 dataset.importTTL(stream: Readable<TTL>): Promise
 ```
 
+Can be used to import a stream with ttl content.
+
 ### Dataset#loadTTL
 
 ```typescript
 dataset.loadTTL(uri: URI): Promise
 ```
+
+Can be used to load a ttl file from disc or from the web. 
 
 ```javascript
 await Promise.all(
@@ -37,8 +41,12 @@ await Promise.all(
 ### Dataset#generateGraph
 
 ```typescript
-dataset.generateGraph(context?: Object): Map<URI, Object>
+dataset.generateGraph(context?: Object, optns?: {compact?: Boolean, meshed?: Boolean}): Map<URI, Object>
 ```
+
+Can be used to generate a map with fully meshed nodes.,
+
+The default options are __compact__ and __meshed__ set to _true_.
 
 ```javascript
 context = {
@@ -61,11 +69,23 @@ graph = dataset.generateGraph(context)
 console.log(graph.get('ids:Connector'))
 ```
 
+```javascript
+str = JSON.stringify({
+    '@context': context,
+    '@graph': [...dataset
+        .generateGraph(context, { meshed: false })
+        .values()
+    ]
+})
+```
+
 ### Dataset#shaclValidate
 
 ```typescript
 dataset.shaclValidate(shapeset: Dataset): ValidationReport
 ```
+
+Can be used to validate this dataset, if the given dataset contains shacl shapes.
 
 ```javascript
 shapeset = new Dataset()

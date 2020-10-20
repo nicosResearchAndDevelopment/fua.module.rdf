@@ -49,6 +49,16 @@ const
     // console.log(dataset.match(IDS('Connector')).toString());
     const graphMap = dataset.generateGraph(context);
     console.log(graphMap.get('ids:Connector'));
+
+    console.log(JSON.stringify({
+        '@context': context,
+        '@graph': [...dataset
+            .generateGraph(context, {
+                meshed: false
+            })
+            .values()
+        ]
+    }, null, "\t"));
     // console.log(graphMap.get(IDS('Connector').value));
     debugger;
 

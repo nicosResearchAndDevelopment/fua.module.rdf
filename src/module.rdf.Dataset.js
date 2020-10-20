@@ -64,9 +64,12 @@ class Dataset extends Store {
     /**
      * Can be used to generate a map with fully meshed nodes.
      * @param {Object<Prefix, URI>} [context={}]
+     * @param {Object} [optns]
+     * @param {Boolean} [optns.compact=true]
+     * @param {Boolean} [optns.meshed=true]
      * @returns {Map<URI, Object>}
      */
-    generateGraph(context = {}) {
+    generateGraph(context = {}, { compact = true, meshed = true } = {}) {
         const
             /** @type {Map<URI, Object>} */
             subjectMap = new Map(),
@@ -90,6 +93,9 @@ class Dataset extends Store {
             // return if already in idMap
             if (idMap.has(uri))
                 return idMap.get(uri);
+
+            // compact means, no prefixes gets registered
+            if (!compact) return uri;
 
             // search all prefixes
             for (let [prefix, target] of prefixMap.entries()) {
@@ -128,7 +134,6 @@ class Dataset extends Store {
                     node = blankMap.get(nodeId);
                     if (!node) {
                         node = {};
-                        // node = { '@id': nodeId };
                         blankMap.set(nodeId, node);
                     }
                     break;
@@ -165,7 +170,9 @@ class Dataset extends Store {
             const
                 subj = _parseTerm(subject),
                 pred = _prefixId(predicate.value),
-                obj = _parseTerm(object);
+                obj = meshed || object.termType !== 'NamedNode'
+                    ? _parseTerm(object)
+                    : { '@id': _parseTerm(object)['@id'] };
 
             // add object to subject
             if (Array.isArray(subj[pred])) {
