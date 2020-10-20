@@ -464,7 +464,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dom-datasetfactory-dataset
-     * @param {Dataset|Iterator<Quad>} [quads] 
+     * @param {Dataset|Array<Quad>|Iterator<Quad>} [quads] 
      * @returns {Dataset} new dataset with given quads
      */
     static dataset(quads) {
