@@ -43,6 +43,10 @@ dataset.shaclValidate(shapeset: Dataset): ValidationReport
 
 #### [Dataset#size](https://rdf.js.org/dataset-spec/#dfn-size)
 
+```typescript
+dataset.size: Number
+```
+
 #### [Dataset#add](https://rdf.js.org/dataset-spec/#dfn-add)
 
 ```typescript
@@ -87,60 +91,170 @@ Note: Since a [DatasetCore](https://rdf.js.org/dataset-spec/#dfn-datasetcore) is
 
 #### Dataset#[Symbol.iterator]
 
+```javascript
+for(let quad of dataset) {
+    console.log(quad)
+}
+```
+
 ### [DatasetInterface](https://rdf.js.org/dataset-spec/#dfn-dataset)
 
 #### [Dataset#addAll](https://rdf.js.org/dataset-spec/#dfn-addall)
 
+```typescript
+dataset.addAll(quads: Quad[]): Dataset
+```
+
 #### [Dataset#contains](https://rdf.js.org/dataset-spec/#dfn-contains)
+
+```typescript
+dataset.contains(dataset: Dataset): Boolean
+```
 
 #### [Dataset#deleteMatches](https://rdf.js.org/dataset-spec/#dfn-deletematches)
 
+```typescript
+dataset.deleteMatches(subject?: Term, predicate?: Term, object?: Term, graph?: Term): Dataset
+```
+
 #### [Dataset#difference](https://rdf.js.org/dataset-spec/#dfn-difference)
+
+```typescript
+dataset.difference(dataset: Dataset): Dataset
+```
 
 #### [Dataset#equals](https://rdf.js.org/dataset-spec/#dfn-equals)
 
+```typescript
+dataset.equals(dataset: Dataset): Boolean
+```
+
 #### [Dataset#every](https://rdf.js.org/dataset-spec/#dfn-every)
+
+```typescript
+dataset.equals(iteratee: (quad: Quad, dataset: Dataset) => Boolean): Boolean
+```
 
 #### [Dataset#filter](https://rdf.js.org/dataset-spec/#dfn-filter)
 
+```typescript
+dataset.filter(iteratee: (quad: Quad, dataset: Dataset) => Boolean): Dataset
+```
+
 #### [Dataset#forEach](https://rdf.js.org/dataset-spec/#dfn-foreach)
+
+```typescript
+dataset.forEach(iteratee: (quad: Quad, dataset: Dataset) => *): Dataset
+```
 
 #### [Dataset#import](https://rdf.js.org/dataset-spec/#dfn-import)
 
+```typescript
+dataset.import(stream: Readable<Quad>): Promise
+```
+
 #### [Dataset#map](https://rdf.js.org/dataset-spec/#dfn-map)
+
+```typescript
+dataset.map(iteratee: (quad: Quad, dataset: Dataset) => Quad): Dataset
+```
 
 #### [Dataset#reduce](https://rdf.js.org/dataset-spec/#dfn-reduce)
 
+```typescript
+dataset.reduce(iteratee: (acc: *, quad: Quad, dataset: Dataset) => *, initialValue?: *): *
+```
+
 #### [Dataset#some](https://rdf.js.org/dataset-spec/#dfn-some)
+
+```typescript
+dataset.some(iteratee: (quad: Quad, dataset: Dataset) => Boolean): Boolean
+```
 
 #### [Dataset#toArray](https://rdf.js.org/dataset-spec/#dfn-toarray)
 
+```typescript
+dataset.toArray(): Quad[]
+```
+
 #### [Dataset#toCanonical](https://rdf.js.org/dataset-spec/#dfn-tocanonical)
+
+```typescript
+// curently not implemented
+```
 
 #### [Dataset#toStream](https://rdf.js.org/dataset-spec/#dfn-tostream)
 
+```typescript
+dataset.toStream(): Readable<Quad>
+```
+
 #### [Dataset#toString](https://rdf.js.org/dataset-spec/#dfn-tostring)
 
+```typescript
+dataset.toString(): String
+```
+
 #### [Dataset#union](https://rdf.js.org/dataset-spec/#dfn-union)
+
+```typescript
+dataset.union(dataset: Dataset): Dataset
+```
 
 ### [DatasetFactoryInterface](https://rdf.js.org/dataset-spec/#dom-datasetfactory)
 
 #### [Dataset.dataset](https://rdf.js.org/dataset-spec/#dom-datasetfactory-dataset)
 
+```typescript
+Dataset.dataset(quads: Dataset | Quad[] | Iterator<Quad>): Dataset
+```
+
 ### [DataFactoryInterface](https://rdf.js.org/data-model-spec/#dfn-datafactory)
 
 #### [Dataset.namedNode](https://rdf.js.org/data-model-spec/#dfn-namednode)
 
+```typescript
+Dataset.namedNode(iri: URI): NamedNode
+```
+
 #### [Dataset.blankNode](https://rdf.js.org/data-model-spec/#dfn-blanknode)
+
+```typescript
+Dataset.blankNode(id?: String): BlankNode
+```
 
 #### [Dataset.literal](https://rdf.js.org/data-model-spec/#dfn-literal)
 
+```typescript
+Dataset.literal(value: String, langOrDatatype?: String | NamedNode): Literal
+```
+
 #### [Dataset.variable](https://rdf.js.org/data-model-spec/#dfn-variable)
+
+```typescript
+Dataset.variable(name?: String): Variable
+```
 
 #### [Dataset.defaultGraph](https://rdf.js.org/data-model-spec/#dfn-defaultgraph)
 
+```typescript
+Dataset.defaultGraph(): DefaultGraph
+```
+
 #### [Dataset.quad](https://rdf.js.org/data-model-spec/#dfn-quad-0)
+
+```typescript
+Dataset.quad(subject: Term, predicate: Term, object: Term, graph?: Term): Quad
+```
 
 #### [Dataset.fromTerm](https://rdf.js.org/data-model-spec/#dfn-fromterm)
 
+```typescript
+Dataset.fromTerm(original: Term): Term
+```
+
 #### [Dataset.fromQuad](https://rdf.js.org/data-model-spec/#dfn-fromquad)
+
+```typescript
+Dataset.fromQuad(original: Quad): Quad
+```

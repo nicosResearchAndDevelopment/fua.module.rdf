@@ -386,7 +386,7 @@ class Dataset extends Store {
     /**
      * https://rdf.js.org/dataset-spec/#dfn-reduce
      * @param {(acc: *, quad: Quad, dataset: Dataset) => *} iteratee 
-     * @param {*} initialValue
+     * @param {*} [initialValue]
      * @returns {*}
      */
     reduce(iteratee, initialValue) {
@@ -496,7 +496,7 @@ class Dataset extends Store {
     /**
      * https://rdf.js.org/data-model-spec/#dfn-literal
      * @param {String} value 
-     * @param {String|NamedNode} langOrDatatype
+     * @param {String|NamedNode} [langOrDatatype]
      * @returns {Literal}
      */
     static literal(value, langOrDatatype) {
@@ -509,7 +509,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-variable
-     * @param {String} name 
+     * @param {String} [name] 
      */
     static variable(name) {
         return new Variable(name);
