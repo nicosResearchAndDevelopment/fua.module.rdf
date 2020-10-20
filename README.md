@@ -57,10 +57,8 @@ context = {
     voaf:   'http://purl.org/vocommons/voaf#',
     xsd:    'http://www.w3.org/2001/XMLSchema#'
 }
-IDS = Namespace(context.ids)
 graph = dataset.generateGraph(context)
-Connector = graph.get(IDS('Connector'))
-console.log(Connector)
+console.log(graph.get('ids:Connector'))
 ```
 
 ### Dataset#shaclValidate
