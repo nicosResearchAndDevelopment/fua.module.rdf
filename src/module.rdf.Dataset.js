@@ -1,53 +1,202 @@
 const
-    { promisify } = require('util'),
-    Stream = require('stream'),
-    { Readable, Writable } = Stream,
-    pipeline = promisify(Stream.pipeline),
-    fs = require('fs'),
-    { createReadStream } = fs,
-    readFile = promisify(fs.readFile),
-    { join: joinPath } = require('path'),
+    { Readable, Writable } = require('stream'),
+    { createReadStream } = require('fs'),
     { fileURLToPath, pathToFileURL } = require('url'),
-    // rdfExt = require('rdf-ext'),
-    // ParserN3 = require('@rdfjs/parser-n3'),
+    isFileURL = (re => re.test.bind(re))(/^file:\/\//),
     fetch = require('node-fetch'),
     SHACLValidator = require('rdf-validate-shacl'),
-    jsonld = require('jsonld'),
-    rdfLib = require('rdflib'),
-    n3 = require('n3');
+    { Statement: Quad, NamedNode, BlankNode, Literal, Variable, Collection, Namespace, defaultGraph } = require('rdflib'),
+    { Store, Parser, StreamParser } = require('n3');
 
 /**
- * @typedef {rdfLib.DataFactory} DataFactory http://rdf.js.org/data-model-spec/#datafactory-interface
- * @typedef {rdfLib.IndexedFormula} Store http://rdf.js.org/stream-spec/#store-interface
- * @typedef {rdfLib.Statement} Quad http://rdf.js.org/data-model-spec/#quad-interface
+ * @typedef {NamedNode} DefaultGraph
  * @typedef {{termType: String, value: String}} Term http://rdf.js.org/data-model-spec/#term-interface
- * @typedef {rdfLib.NamedNode} NamedNode http://rdf.js.org/data-model-spec/#namednode-interface
- * @typedef {rdfLib.BlankNode} BlankNode http://rdf.js.org/data-model-spec/#blanknode-interface
- * @typedef {rdfLib.Literal} Literal http://rdf.js.org/data-model-spec/#literal-interface
- * @typedef {rdfLib.Variable} Variable http://rdf.js.org/data-model-spec/#variable-interface
- * @typedef {rdfLib.Collection} Collection
- * @typedef {rdfLib.Namespace} Namespace
  * @typedef {String} TTL A string of content type 'text/turtle'.
  * @typedef {String} URI Unique Resource Identifier
  * @typedef {String} Prefix
+ * @typedef {{message, path, focusNode, severity, sourceConstraintComponent, sourceShape}} ValidationResult
+ * @typedef {{conforms: Boolean, results: Array<ValidationResult>}} ValidationReport
  */
 
 /**
- * https://rdf.js.org/dataset-spec/#dfn-dataset
- * @class
- * @extends n3.Store 
+ * - https://rdf.js.org/dataset-spec/#dom-datasetfactory
+ * - https://rdf.js.org/data-model-spec/#dfn-datafactory
  */
-class Dataset extends n3.Store {
+class Dataset extends Store {
 
     /**
+     * - https://rdf.js.org/dataset-spec/#dfn-dataset
      * @param {Array<Quad>} quads
      * @constructs Dataset
      */
     constructor(quads = []) {
-        super(quads, {
-            factory: rdfLib.DataFactory
-        });
+        super(quads, { factory: Dataset });
     } // Dataset#constructor
+
+    /**
+     * Can be used to import a stream with ttl content.
+     * @param {Readable<TTL>} stream 
+     * @returns {Promise}
+     */
+    async importTTL(stream) {
+        const parser = new StreamParser({ factory: Dataset });
+        return this.import(parser.import(stream));
+    } // Dataset#importTTL
+
+    /**
+     * Can be used to load a ttl file from disc or from the web. 
+     * @param {URI} uri 
+     * @returns {Promise}
+     */
+    async loadTTL(uri) {
+        if (isFileURL(uri)) {
+            const reader = createReadStream(fileURLToPath(uri));
+            return this.importTTL(reader);
+        } else {
+            const response = await fetch(uri, {
+                method: 'get',
+                headers: { Accept: 'text/turtle' }
+            });
+            return this.importTTL(response.body);
+        }
+    } // Dataset#loadTTL
+
+    /**
+     * Can be used to generate a map with fully meshed nodes.
+     * @param {Object<Prefix, URI>} [context={}]
+     * @returns {Map<URI, Object>}
+     */
+    generateGraph(context = {}) {
+        const
+            /** @type {Map<URI, Object>} */
+            subjectMap = new Map(),
+            /** @type {Map<URI, { "@id": String, [missingRef]: Array<[URI, URI]> }>} */
+            missingMap = new Map(),
+            /** @type {Map<URI, Object>} */
+            blankMap = new Map(),
+            /** @type {Map<URI, URI>} */
+            idMap = new Map([
+                ['http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '@type']
+            ]),
+            /** @type {Map<Prefix, URI>} */
+            prefixMap = new Map(Object.entries(context));
+
+        /**
+         * This function prefixes uris and caches them for this generation.
+         * @param {URI} uri 
+         * @returns {URI}
+         */
+        function _prefixId(uri) {
+            // return if already in idMap
+            if (idMap.has(uri))
+                return idMap.get(uri);
+
+            // search all prefixes
+            for (let [prefix, target] of prefixMap.entries()) {
+                // if uri starts with a prefix, save entry in idMap and return
+                if (uri.startsWith(target)) {
+                    let short = prefix + ":" + uri.substring(target.length);
+                    idMap.set(uri, short);
+                    return short;
+                }
+            }
+
+            // if not returned already, there is no prefix for this uri
+            idMap.set(uri, uri);
+            return uri;
+        } // _prefixId
+
+        /**
+         * This function takes a term, returns the corresponding value in jsonld and caches any nodes.
+         * @param {Term} term 
+         * @returns {{"@id": String} | Object | String}
+         */
+        function _parseTerm(term) {
+            let nodeId, node;
+            switch (term.termType) {
+                case 'NamedNode':
+                    nodeId = _prefixId(term.value);
+                    node = subjectMap.get(nodeId) || missingMap.get(nodeId);
+                    if (!node) {
+                        node = { '@id': nodeId };
+                        missingMap.set(nodeId, node);
+                    }
+                    break;
+
+                case 'BlankNode':
+                    nodeId = term.value;
+                    node = blankMap.get(nodeId);
+                    if (!node) {
+                        node = {};
+                        // node = { '@id': nodeId };
+                        blankMap.set(nodeId, node);
+                    }
+                    break;
+
+                case 'Literal':
+                    if (term.lang) {
+                        node = {
+                            '@value': term.value,
+                            '@language': term.lang
+                        };
+                    } else if (term.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
+                        node = {
+                            '@value': term.value,
+                            '@type': _prefixId(term.datatype.value)
+                        };
+                    } else {
+                        node = term.value;
+                    }
+                    break;
+
+                default:
+                    node = null;
+                    break;
+            }
+            return node;
+        } // _parseTerm
+
+        /**
+         * This function takes a quad and processes it to fill the graph and mesh nodes.
+         * @param {{subject: Term, predicate: Term, object: Term, graph: Term}} term 
+         * @returns {undefined}
+         */
+        function _processQuad({ subject, predicate, object, graph }) {
+            const
+                subj = _parseTerm(subject),
+                pred = _prefixId(predicate.value),
+                obj = _parseTerm(object);
+
+            // add object to subject
+            if (Array.isArray(subj[pred])) {
+                subj[pred].push(obj);
+            } else if (Reflect.has(subj, pred)) {
+                subj[pred] = [subj[pred], obj];
+            } else {
+                subj[pred] = obj;
+            }
+
+            // move from missingMap to subjectMap, if necessary
+            if (missingMap.has(subj['@id'])) {
+                missingMap.delete(subj['@id']);
+                subjectMap.set(subj['@id'], subj);
+            }
+        } // _processQuad
+
+        // iterates over all quads, parses their terms and meshes them
+        Array.from(this).forEach(_processQuad);
+        return subjectMap;
+    } // Dataset#generateGraph
+
+    /**
+     * Can be used to validate this dataset, if the given dataset contains shacl shapes.
+     * @param {Dataset} shapeset 
+     * @returns {ValidationReport}
+     */
+    shaclValidate(shapeset) {
+        const validator = new SHACLValidator(shapeset, { factory: Dataset });
+        return validator.validate(this);
+    } // Dataset#shaclValidate
 
     //#region RDF/JS: DatasetCore
 
@@ -271,7 +420,7 @@ class Dataset extends n3.Store {
      * @returns {String}
      */
     toCanonical() {
-        // TODO
+        // TODO implement rdf normalization algorithm
         throw new Error("curently not implemented");
     } // Dataset#toCanonical
 
@@ -286,7 +435,7 @@ class Dataset extends n3.Store {
     /**
      * https://rdf.js.org/dataset-spec/#dfn-tostring
      * @returns {String}
-     * TODO multiline literals are parsed invalid
+     * TODO multiline literals are currently parsed invalid
      */
     toString() {
         return super.getQuads().map(
@@ -311,182 +460,110 @@ class Dataset extends n3.Store {
 
     //#endregion RDF/JS: Dataset
 
-    /**
-     * @param {Readable<TTL>} stream 
-     * @returns {Promise}
-     */
-    async importTTL(stream) {
-        const parser = new n3.StreamParser({
-            factory: rdfLib.DataFactory
-        });
-        return this.import(parser.import(stream));
-    } // Dataset#importTTL
+    //#region RDF/JS: DatasetFactory
 
     /**
-     * @param {String} filepath 
-     * @returns {Promise}
+     * https://rdf.js.org/dataset-spec/#dom-datasetfactory-dataset
+     * @param {Dataset|Iterator<Quad>} [quads] 
+     * @returns {Dataset} new dataset with given quads
      */
-    async loadTTL(filepath) {
-        const reader = createReadStream(filepath);
-        return this.importTTL(reader);
-    } // Dataset#loadTTL
+    static dataset(quads) {
+        return new Dataset(quads ? Array.isArray(quads) ? quads : Array.from(quads) : []);
+    } // Dataset.dataset
+
+    //#endregion RDF/JS: DatasetFactory
+
+    //#region RDF/JS: DataFactory
 
     /**
-     * @param {Object<Prefix, URI>} [context={}]
-     * @returns {Map<URI, Object>}
+     * https://rdf.js.org/data-model-spec/#dfn-namednode
+     * @param {URI} iri 
+     * @returns {NamedNode}
      */
-    generateGraph(context = {}) {
-        const
-            /** @type {Map<URI, Object>} */
-            subjectMap = new Map(),
-            /** @type {Map<URI, { "@id": String, [missingRef]: Array<[URI, URI]> }>} */
-            missingMap = new Map(),
-            /** @type {Map<URI, Object>} */
-            blankMap = new Map(),
-            /** @type {Map<URI, URI>} */
-            idMap = new Map([
-                ['http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '@type']
-            ]),
-            /** @type {Map<Prefix, URI>} */
-            prefixMap = new Map(Object.entries(context));
+    static namedNode(iri) {
+        return new NamedNode(iri);
+    } // Dataset.namedNode
 
-        /**
-         * This function prefixes uris and caches them for this generation.
-         * @param {URI} uri 
-         * @returns {URI}
-         */
-        function _prefixId(uri) {
-            // return if already in idMap
-            if (idMap.has(uri))
-                return idMap.get(uri);
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-blanknode
+     * @param {String} [id] 
+     * @returns {BlankNode}
+     */
+    static blankNode(id) {
+        return new BlankNode(id);
+    } // Dataset.blankNode
 
-            // search all prefixes
-            for (let [prefix, target] of prefixMap.entries()) {
-                // if uri starts with a prefix, save entry in idMap and return
-                if (uri.startsWith(target)) {
-                    let short = prefix + ":" + uri.substring(target.length);
-                    idMap.set(uri, short);
-                    return short;
-                }
-            }
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-literal
+     * @param {String} value 
+     * @param {String|NamedNode} langOrDatatype
+     * @returns {Literal}
+     */
+    static literal(value, langOrDatatype) {
+        return new Literal(
+            value,
+            typeof langOrDatatype === 'string' ? langOrDatatype : undefined,
+            langOrDatatype instanceof NamedNode ? langOrDatatype : undefined
+        );
+    } // Dataset.literal
 
-            // if not returned already, there is no prefix for this uri
-            idMap.set(uri, uri);
-            return uri;
-        } // _prefixId
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-variable
+     * @param {String} name 
+     */
+    static variable(name) {
+        return new Variable(name);
+    } // Dataset.variable
 
-        /**
-         * This function takes a term, returns the corresponding value in jsonld and caches any nodes.
-         * @param {Term} term 
-         * @returns {{"@id": String} | Object | String}
-         */
-        function _parseTerm(term) {
-            let nodeId, node;
-            switch (term.termType) {
-                case 'NamedNode':
-                    nodeId = _prefixId(term.value);
-                    node = subjectMap.get(nodeId) || missingMap.get(nodeId);
-                    if (!node) {
-                        node = { '@id': nodeId };
-                        missingMap.set(nodeId, node);
-                    }
-                    break;
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-defaultgraph
+     * @returns {DefaultGraph}
+     */
+    static defaultGraph() {
+        return defaultGraph();
+    } // Dataset.defaultGraph
 
-                case 'BlankNode':
-                    nodeId = term.value;
-                    node = blankMap.get(nodeId);
-                    if (!node) {
-                        node = {};
-                        // node = { '@id': nodeId };
-                        blankMap.set(nodeId, node);
-                    }
-                    break;
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-quad-0
+     * @param {Term} subject 
+     * @param {Term} predicate 
+     * @param {Term} object 
+     * @param {Term} [graph=this.defaultGraph()] 
+     * @returns {Quad}
+     */
+    static quad(subject, predicate, object, graph = this.defaultGraph()) {
+        return new Quad(subject, predicate, object, graph);
+    } // Dataset.quad
 
-                case 'Literal':
-                    if (term.lang) {
-                        node = {
-                            '@value': term.value,
-                            '@language': term.lang
-                        };
-                    } else if (term.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
-                        node = {
-                            '@value': term.value,
-                            '@type': _prefixId(term.datatype.value)
-                        };
-                    } else {
-                        node = term.value;
-                    }
-                    break;
-
-                default:
-                    node = null;
-                    break;
-            }
-            return node;
-        } // _parseTerm
-
-        // iterates over all quads, parses their terms and meshes them
-        for (let { subject, predicate, object, graph } of this) {
-            const
-                subj = _parseTerm(subject),
-                { '@id': subjId } = subj,
-                pred = _prefixId(predicate.value),
-                obj = _parseTerm(object);
-
-            // add object to subject
-            if (Array.isArray(subj[pred])) {
-                subj[pred].push(obj);
-            } else if (Reflect.has(subj, pred)) {
-                subj[pred] = [subj[pred], obj];
-            } else {
-                subj[pred] = obj;
-            }
-
-            // move from missingMap to subjectMap, if necessary
-            if (missingMap.has(subjId)) {
-                missingMap.delete(subjId);
-                subjectMap.set(subjId, subj);
-            }
-
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-fromterm
+     * @param {Term} original 
+     * @returns {Term} 
+     */
+    static fromTerm(original) {
+        switch (original.termType) {
+            case 'NamedNode': return new NamedNode(original.value);
+            case 'BlankNode': return new BlankNode(original.value);
+            case 'Literal': return new Literal(original.value, original.lang, original.datatype);
+            case 'Variable': return new Variable(original.value);
         }
+    } // Dataset.fromTerm
 
-        return subjectMap;
-    } // Dataset#generateGraph
+    /**
+     * https://rdf.js.org/data-model-spec/#dfn-fromquad
+     * @param {Quad} original 
+     * @returns {Quad}
+     */
+    static fromQuad(original) {
+        return new Quad(
+            this.fromTerm(original.subject),
+            this.fromTerm(original.predicate),
+            this.fromTerm(original.object),
+            this.fromTerm(original.graph)
+        );
+    } // Dataset.fromQuad
 
-    // /**
-    //  * @param {Object<Prefix, URI>} [context]
-    //  * @returns {JSON}
-    //  */
-    // toJSON(context) {
-    //     const
-    //         graph = [],
-    //         index = new Map(),
-    //         result = { '@context': context || {}, '@graph': graph };
-
-    //     // TODO
-
-    //     return result;
-    // } // Dataset#toJSON
-
-    // /**
-    //  * @param {Object<Prefix, URI>} [context]
-    //  * @returns {Map<URI, Object>}
-    //  */
-    // toMap(context) {
-    //     const
-    //         { '@graph': graph } = this.toJSON(context),
-    //         resultMap = new Map(graph.map(obj => [obj['@id'], obj])),
-    //         getValue = (obj) => obj && obj['@id'] ? resultMap.get(obj['@id']) || obj : obj;
-
-    //     // meshing the objects in the result map
-    //     for (let obj of resultMap) {
-    //         for (let [key, value] of Object.entries(obj)) {
-    //             obj[key] = Array.isArray(value) ? value.map(getValue) : getValue(value);
-    //         }
-    //     }
-
-    //     return resultMap;
-    // } // Dataset#toMap
+    //#endregion RDF/JS: DataFactory
 
 } // Dataset
 
