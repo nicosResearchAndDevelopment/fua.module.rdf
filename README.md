@@ -27,16 +27,53 @@ dataset.importTTL(stream: Readable<TTL>): Promise
 dataset.loadTTL(uri: URI): Promise
 ```
 
+```javascript
+await Promise.all(
+    dataset.loadTTL('http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
+    dataset.loadTTL('file:///resource/ids-im/ontology.ttl')
+)
+```
+
 ### Dataset#generateGraph
 
 ```typescript
 dataset.generateGraph(context?: Object): Map<URI, Object>
 ```
 
+```javascript
+context = {
+    dct:    'http://purl.org/dc/terms/',
+    fno:    'https://w3id.org/function/ontology#',
+    foaf:   'http://xmlns.com/foaf/0.1/',
+    ids:    'https://w3id.org/idsa/core/',
+    idsa:   'https://www.internationaldataspaces.org',
+    idsm:   'https://w3id.org/idsa/metamodel/',
+    org:    'http://www.w3.org/ns/org#',
+    owl:    'http://www.w3.org/2002/07/owl#',
+    rdf:    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    rdfs:   'http://www.w3.org/2000/01/rdf-schema#',
+    time:   'http://www.w3.org/2006/time#',
+    vann:   'http://purl.org/vocab/vann/',
+    voaf:   'http://purl.org/vocommons/voaf#',
+    xsd:    'http://www.w3.org/2001/XMLSchema#'
+}
+IDS = Namespace(context.ids)
+graph = dataset.generateGraph(context)
+Connector = graph.get(IDS('Connector'))
+console.log(Connector)
+```
+
 ### Dataset#shaclValidate
 
 ```typescript
 dataset.shaclValidate(shapeset: Dataset): ValidationReport
+```
+
+```javascript
+shapeset = new Dataset()
+shapeset.loadTTL('file:///resource/ids-im/validation/shapes.ttl')
+report = dataset.shaclValidate(shapeset)
+console.log(report.conforms, report.results)
 ```
 
 ### [DatasetCoreInterface](https://rdf.js.org/dataset-spec/#dfn-datasetcore)
@@ -90,6 +127,10 @@ Note: This method always returns a new [DatasetCore](https://rdf.js.org/dataset-
 Note: Since a [DatasetCore](https://rdf.js.org/dataset-spec/#dfn-datasetcore) is an unordered set, the order of the quads within the returned sequence is arbitrary.
 
 #### Dataset#[Symbol.iterator]
+
+```typescript
+dataset[Symbol.iterator](): Iterable<Quad>
+```
 
 ```javascript
 for(let quad of dataset) {
@@ -206,7 +247,7 @@ dataset.union(dataset: Dataset): Dataset
 #### [Dataset.dataset](https://rdf.js.org/dataset-spec/#dom-datasetfactory-dataset)
 
 ```typescript
-Dataset.dataset(quads: Dataset | Quad[] | Iterator<Quad>): Dataset
+Dataset.dataset(quads: Dataset | Quad[] | Iterable<Quad>): Dataset
 ```
 
 ### [DataFactoryInterface](https://rdf.js.org/data-model-spec/#dfn-datafactory)

@@ -191,7 +191,7 @@ class Dataset extends Store {
     /**
      * Can be used to validate this dataset, if the given dataset contains shacl shapes.
      * @param {Dataset} shapeset 
-     * @returns {ValidationReport}
+     * @returns {ValidationReport} https://www.npmjs.com/package/rdf-validate-shacl
      */
     shaclValidate(shapeset) {
         const validator = new SHACLValidator(shapeset, { factory: Dataset });
@@ -208,6 +208,9 @@ class Dataset extends Store {
         return super.size;
     } // Dataset#size
 
+    /**
+     * @returns {Iterable<Quad>}
+     */
     [Symbol.iterator]() {
         // TODO iterate more efficiently without creating an array
         return super.getQuads()[Symbol.iterator]();
@@ -464,7 +467,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dom-datasetfactory-dataset
-     * @param {Dataset|Array<Quad>|Iterator<Quad>} [quads] 
+     * @param {Dataset|Array<Quad>|Iterable<Quad>} [quads] 
      * @returns {Dataset} new dataset with given quads
      */
     static dataset(quads) {

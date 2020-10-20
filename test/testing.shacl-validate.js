@@ -17,8 +17,8 @@ const
             'ex': "http://example.org/stuff/1.0/",
             'owl': "http://www.w3.org/2002/07/owl#"
         },
-        shapesURI = pathToFileURL(joinPath(__dirname, 'data/my-shapes.ttl')),
-        dataURI = pathToFileURL(joinPath(__dirname, 'data/my-data.ttl')),
+        shapesURI = pathToFileURL(joinPath(__dirname, 'data/my-shapes.ttl')).toString(),
+        dataURI = pathToFileURL(joinPath(__dirname, 'data/my-data.ttl')).toString(),
         shapesSet = new Dataset(),
         dataSet = new Dataset();
 
