@@ -41,12 +41,16 @@ await Promise.all(
 ### Dataset#generateGraph
 
 ```typescript
-dataset.generateGraph(context?: Object, optns?: {compact?: Boolean, meshed?: Boolean}): Map<URI, Object>
+dataset.generateGraph(context?: Object, optns?: {compact?: Boolean, meshed?: Boolean, blanks?: Boolean}): Map<URI, Object>
 ```
 
-Can be used to generate a map with fully meshed nodes.,
+Can be used to generate a map with fully meshed nodes.
 
-The default options are __compact__ and __meshed__ set to _true_.
+__Options__ (_defaults_)
+
+- __compact:__ (_true_) Converts all URIs to their compact form, if an appropriate context is given.
+- __meshed:__ (_true_) Enables object traversal. Not suited for serialization.
+- __blanks:__ (_false_) Generates IDs for blank nodes and adds them to the result graph.
 
 ```javascript
 context = {
@@ -73,7 +77,7 @@ console.log(graph.get('ids:Connector'))
 str = JSON.stringify({
     '@context': context,
     '@graph': [...dataset
-        .generateGraph(context, { meshed: false })
+        .generateGraph(context, { meshed: false, blanks: true })
         .values()
     ]
 })

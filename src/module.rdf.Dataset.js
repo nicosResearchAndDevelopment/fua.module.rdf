@@ -69,7 +69,7 @@ class Dataset extends Store {
      * @param {Boolean} [optns.meshed=true]
      * @returns {Map<URI, Object>}
      */
-    generateGraph(context = {}, { compact = true, meshed = true } = {}) {
+    generateGraph(context = {}, { compact = true, meshed = true, blanks = false } = {}) {
         const
             /** @type {Map<URI, Object>} */
             subjectMap = new Map(),
@@ -133,7 +133,7 @@ class Dataset extends Store {
                     nodeId = term.value;
                     node = blankMap.get(nodeId);
                     if (!node) {
-                        node = {};
+                        node = blanks ? { '@id': nodeId } : {};
                         blankMap.set(nodeId, node);
                     }
                     break;
@@ -170,7 +170,7 @@ class Dataset extends Store {
             const
                 subj = _parseTerm(subject),
                 pred = _prefixId(predicate.value),
-                obj = meshed || object.termType !== 'NamedNode'
+                obj = meshed || object.termType !== 'NamedNode' || (blanks && object.termType === 'BlankNode')
                     ? _parseTerm(object)
                     : { '@id': _parseTerm(object)['@id'] };
 
@@ -192,6 +192,7 @@ class Dataset extends Store {
 
         // iterates over all quads, parses their terms and meshes them
         Array.from(this).forEach(_processQuad);
+        if (blanks) blankMap.forEach(blankNode => subjectMap.set(blankNode['@id'], blankNode));
         return subjectMap;
     } // Dataset#generateGraph
 

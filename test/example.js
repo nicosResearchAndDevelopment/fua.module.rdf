@@ -29,17 +29,17 @@ const
         imPath = `C:\\Users\\spetrac\\Projects\\IDSA.InformationModel`,
         // filePath = joinPath(__dirname, 'data/my-data.ttl'),
         // filePath = joinPath(imPath, 'Ontology.ttl'),
-        // filePath = joinPath(imPath, 'model/infrastructure/Connector.ttl'),
-        filePath = joinPath(imPath, 'docs/serializations/ontology.ttl'),
+        filePath = joinPath(imPath, 'model/infrastructure/Connector.ttl'),
+        // filePath = joinPath(imPath, 'docs/serializations/ontology.ttl'),
         // readStream = createReadStream(filePath),
         IDS = Namespace('https://w3id.org/idsa/core/'),
         dataset = new Dataset();
 
     // await dataset.importTTL(readStream);
     await Promise.all([
-        dataset.loadTTL("https://www.w3.org/1999/02/22-rdf-syntax-ns"),
+        // dataset.loadTTL("https://www.w3.org/1999/02/22-rdf-syntax-ns"),
         // dataset.loadTTL("https://www.w3.org/2000/01/rdf-schema"),
-        dataset.loadTTL("https://www.w3.org/2002/07/owl"),
+        // dataset.loadTTL("https://www.w3.org/2002/07/owl"),
         dataset.loadTTL(pathToFileURL(filePath))
     ]);
 
@@ -47,14 +47,15 @@ const
     // console.log(dataset.toString());
     // console.log(dataset.match(NamedNode('https://w3id.org/idsa/core/Connector')).toString());
     // console.log(dataset.match(IDS('Connector')).toString());
-    const graphMap = dataset.generateGraph(context);
-    console.log(graphMap.get('ids:Connector'));
+    // const graphMap = dataset.generateGraph(context);
+    // console.log(graphMap.get('ids:Connector'));
 
     console.log(JSON.stringify({
         '@context': context,
         '@graph': [...dataset
             .generateGraph(context, {
-                meshed: false
+                meshed: false,
+                blanks: true
             })
             .values()
         ]
