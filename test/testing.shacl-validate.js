@@ -4,19 +4,12 @@ const
     { Namespace } = require('rdflib'),
     SHACLValidator = require('rdf-validate-shacl'),
     rdfLib = require('rdflib'),
+    context = require('./data/context.json'),
     Dataset = require('../src/module.rdf.Dataset.js');
 
 (async (/* async-iife */) => {
 
     const
-        context = {
-            'sh': "http://www.w3.org/ns/shacl#",
-            'rdf': "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-            'rdfs': "http://www.w3.org/2000/01/rdf-schema#",
-            'xsd': "http://www.w3.org/2001/XMLSchema#",
-            'ex': "http://example.org/stuff/1.0/",
-            'owl': "http://www.w3.org/2002/07/owl#"
-        },
         shapesURI = pathToFileURL(joinPath(__dirname, 'data/my-shapes.ttl')).toString(),
         dataURI = pathToFileURL(joinPath(__dirname, 'data/my-data.ttl')).toString(),
         shapesSet = new Dataset(),

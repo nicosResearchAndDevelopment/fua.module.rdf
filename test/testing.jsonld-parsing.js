@@ -2,6 +2,7 @@ const
     { join: joinPath } = require('path'),
     { Namespace } = require('rdflib'),
     jsonld = require('jsonld'),
+    context = require('./data/context.json'),
     Dataset = require('../src/module.rdf.Dataset.js');
 
 (async (/* async-iife */) => {
@@ -23,22 +24,6 @@ const
     // 2. load the dataset into a jsonld graph
 
     const
-        context = {
-            'dct': "http://purl.org/dc/terms/",
-            'fno': "https://w3id.org/function/ontology#",
-            'foaf': "http://xmlns.com/foaf/0.1/",
-            'ids': "https://w3id.org/idsa/core/",
-            'idsa': "https://www.internationaldataspaces.org",
-            'idsm': "https://w3id.org/idsa/metamodel/",
-            'org': "http://www.w3.org/ns/org#",
-            'owl': "http://www.w3.org/2002/07/owl#",
-            'rdf': "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-            'rdfs': "http://www.w3.org/2000/01/rdf-schema#",
-            'time': "http://www.w3.org/2006/time#",
-            'vann': "http://purl.org/vocab/vann/",
-            'voaf': "http://purl.org/vocommons/voaf#",
-            'xsd': "http://www.w3.org/2001/XMLSchema#"
-        },
         rdfDoc = dataset.toString(),
         ldArr = await jsonld.fromRDF(rdfDoc, { 'format': 'application/nquads' }),
         compactArr = await Promise.all(ldArr.map(obj => jsonld.compact(obj, context)));
