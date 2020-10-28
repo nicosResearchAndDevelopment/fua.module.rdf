@@ -73,21 +73,29 @@ class RedisStore {
         if(!Array.isArray(subjectArr))
             subjectArr = [subjectArr];
 
+        const redisClient = this.#client;
+
+        /**
+         * @param {String} key
+         * @returns {Promise<Array<String>>}
+         * @private
+         */
+        function _retrieveSet(key) {
+            return new Promise((resolve, reject) => {
+                const callback = (err, result) => err ? reject(err) : resolve(result);
+                redisClient.SMEMBERS(key, callback);
+            });
+        } // _retrieveSets
+
         /** @type {Map<String, Map<String, String>>} */
-        const resultMap = new Map(await Promise.all(subjectArr.map(async (subject) => {
+        const subjMap = new Map(await Promise.all(subjectArr.map(async (subject) => {
             const
                 /** @type {String} */
                 subjKey = subject.toString(),
                 /** @type {Array<String>} */
-                predKeyArr = await new Promise((resolve, reject) => {
-                    const callback = (err, result) => err ? reject(err) : resolve(result);
-                    this.#client.SMEMBERS(subjKey, callback);
-                }),
+                predKeyArr = await _retrieveSet(subjKey),
                 /** @type {Array<Array<String>>} */
-                objArr = await Promise.all(predKeyArr.map((predKey) => new Promise((resolve, reject) => {
-                    const callback = (err, result) => err ? reject(err) : resolve(result);
-                    this.#client.SMEMBERS(predKey, callback);
-                }))),
+                objArr = await Promise.all(predKeyArr.map(_retrieveSet)),
                 /** @type {Map<String, String>} */
                 predMap = new Map(predKeyArr.map((predKey, index) => [
                     predKey.substr(subjKey.length),
@@ -97,8 +105,37 @@ class RedisStore {
             return [ subjKey, predMap ];
         }))); // resultMap
 
-        // TODO: convert resultMap to Dataset
-        return resultMap;
+        /**
+         * @param {String} value
+         * @returns {Term}
+         * @private
+         */
+        function _convertValue(value) {
+            if(value.startsWith('<') && value.endsWith('>')) {
+                const id = value.substr(1, value.length - 2);
+                return id.startsWith('http')
+                    ? Dataset.namedNode(id)
+                    : Dataset.blankNode(id);
+            } else {
+                return Dataset.literal(value);
+            }
+        } // _convertValue
+
+        const result = new Dataset();
+
+        for(let [subj, predMap] of subjMap) {
+            for(let [pred, objArr] of predMap) {
+                for(let obj of objArr) {
+                    result.add(Dataset.quad(
+                        _convertValue(subj),
+                        _convertValue(pred),
+                        _convertValue(obj)
+                    ));
+                }
+            }
+        }
+
+        return result;
     } // RedisStore#export
 
 } // RedisStore
