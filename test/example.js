@@ -50,6 +50,7 @@ const
     //     ]
     // }, null, "\t"));
     // console.log(graphMap.get(IDS('Connector').value));
+    dataset[Symbol.iterator]();
     debugger;
 
 })(/* async-iife */).catch(console.error);

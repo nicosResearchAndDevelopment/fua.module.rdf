@@ -235,7 +235,8 @@ class Dataset extends Store {
      */
     [Symbol.iterator]() {
         // TODO iterate more efficiently without creating an array
-        return super.getQuads()[Symbol.iterator]();
+        const quads = super.getQuads();
+        return quads[Symbol.iterator]();
     } // Dataset#[Symbol.iterator]
 
     /**
@@ -460,11 +461,11 @@ class Dataset extends Store {
     /**
      * https://rdf.js.org/dataset-spec/#dfn-tostring
      * @returns {String}
-     * TODO multiline literals are currently parsed invalid
      */
     toString() {
+        // TODO multiline literals are currently parsed invalid
         return super.getQuads().map(
-            quad => quad.toNQ()
+            quad => quad.toString()
         ).join("\n");
     } // Dataset#toString
 
@@ -515,6 +516,7 @@ class Dataset extends Store {
      * @returns {BlankNode}
      */
     static blankNode(id) {
+        // TODO generate id from uuid
         return new BlankNode(id);
     } // Dataset.blankNode
 
@@ -567,10 +569,10 @@ class Dataset extends Store {
      */
     static fromTerm(original) {
         switch (original.termType) {
-            case 'NamedNode': return new NamedNode(original.value);
-            case 'BlankNode': return new BlankNode(original.value);
-            case 'Literal': return new Literal(original.value, original.lang, original.datatype);
-            case 'Variable': return new Variable(original.value);
+            case 'NamedNode': return this.namedNode(original.value);
+            case 'BlankNode': return this.blankNode(original.value);
+            case 'Literal': return this.literal(original.value, original.lang, original.datatype);
+            case 'Variable': return this.variable(original.value);
         }
     } // Dataset.fromTerm
 
@@ -580,7 +582,7 @@ class Dataset extends Store {
      * @returns {Quad}
      */
     static fromQuad(original) {
-        return new Quad(
+        return this.quad(
             this.fromTerm(original.subject),
             this.fromTerm(original.predicate),
             this.fromTerm(original.object),
