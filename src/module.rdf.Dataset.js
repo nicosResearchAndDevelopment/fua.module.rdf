@@ -1,7 +1,7 @@
 const
     { Readable, Writable } = require('stream'),
     { createReadStream } = require('fs'),
-    { fileURLToPath, pathToFileURL } = require('url'),
+    { fileURLToPath, pathToFileURL, URL } = require('url'),
     isFileURL = (re => re.test.bind(re))(/^file:\/\//),
     fetch = require('node-fetch'),
     SHACLValidator = require('rdf-validate-shacl'),
@@ -36,28 +36,42 @@ class Dataset extends Store {
     /**
      * Can be used to import a stream with ttl content.
      * @param {Readable<TTL>} stream 
+     * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
-    async importTTL(stream) {
-        const parser = new StreamParser({ factory: Dataset });
+    async importTTL(stream, defaultGraph) {
+        const parser = new StreamParser({
+            factory: defaultGraph ? {
+                namedNode: Dataset.namedNode,
+                blankNode: Dataset.blankNode,
+                literal: Dataset.literal,
+                variable: Dataset.variable,
+                defaultGraph: () => defaultGraph,
+                quad: Dataset.quad,
+                fromTerm: Dataset.fromTerm,
+                fromQuad: Dataset.fromQuad
+            } : Dataset
+        });
         return this.import(parser.import(stream));
     } // Dataset#importTTL
 
     /**
      * Can be used to load a ttl file from disc or from the web. 
      * @param {URI} uri 
+     * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
-    async loadTTL(uri) {
+    async loadTTL(uri, defaultGraph) {
+        if (uri instanceof URL) uri = uri.toString();
         if (isFileURL(uri)) {
             const reader = createReadStream(fileURLToPath(uri));
-            return this.importTTL(reader);
+            return this.importTTL(reader, defaultGraph || new NamedNode(uri));
         } else {
             const response = await fetch(uri, {
                 method: 'get',
                 headers: { Accept: 'text/turtle' }
             });
-            return this.importTTL(response.body);
+            return this.importTTL(response.body, defaultGraph || new NamedNode(uri));
         }
     } // Dataset#loadTTL
 
