@@ -543,7 +543,7 @@ class Dataset extends Store {
         return new Literal(
             value,
             typeof langOrDatatype === 'string' ? langOrDatatype : undefined,
-            langOrDatatype instanceof NamedNode ? langOrDatatype : undefined
+            langOrDatatype && langOrDatatype.termType === 'NamedNode' ? langOrDatatype : undefined
         );
     } // Dataset.literal
 
