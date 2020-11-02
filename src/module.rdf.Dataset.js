@@ -6,7 +6,7 @@ const
     fetch = require('node-fetch'),
     SHACLValidator = require('rdf-validate-shacl'),
     { Statement: Quad, NamedNode, BlankNode, Literal, Variable, Collection, Namespace, defaultGraph } = require('rdflib'),
-    { Store, Parser, StreamParser } = require('n3');
+    { Store, StreamParser, Writer } = require('n3');
 
 /**
  * @typedef {NamedNode} DefaultGraph
@@ -219,6 +219,19 @@ class Dataset extends Store {
         const validator = new SHACLValidator(shapeset, { factory: Dataset });
         return validator.validate(this);
     } // Dataset#shaclValidate
+
+    async exportTTL(context = {}) {
+        const writer = new Writer({
+            prefixes: context
+        });
+        for (let quad of this) {
+            writer.addQuad(quad);
+        }
+        const result = await new Promise((resolve, reject) => writer.end(
+            (err, result) => err ? reject(err) : resolve(result)
+        ));
+        return result;
+    } // Dataset#exportTTL
 
     //#region RDF/JS: DatasetCore
 
