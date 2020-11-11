@@ -1,12 +1,12 @@
 const
-    { Readable, Writable } = require('stream'),
-    { createReadStream } = require('fs'),
-    { fileURLToPath, pathToFileURL, URL } = require('url'),
-    isFileURL = (re => re.test.bind(re))(/^file:\/\//),
-    fetch = require('node-fetch'),
-    SHACLValidator = require('rdf-validate-shacl'),
-    { Statement: Quad, NamedNode, BlankNode, Literal, Variable, Collection, Namespace, defaultGraph } = require('rdflib'),
-    { Store, StreamParser, Writer } = require('n3');
+    {Readable, Writable}                                                                            = require('stream'),
+    {createReadStream}                                                                              = require('fs'),
+    {fileURLToPath, pathToFileURL, URL}                                                             = require('url'),
+    isFileURL                                                                                       = (re => re.test.bind(re))(/^file:\/\//),
+    fetch                                                                                           = require('node-fetch'),
+    SHACLValidator                                                                                  = require('rdf-validate-shacl'),
+    {Statement: Quad, NamedNode, BlankNode, Literal, Variable, Collection, Namespace, defaultGraph} = require('rdflib'),
+    {Store, StreamParser, Writer}                                                                   = require('n3');
 
 /**
  * @typedef {NamedNode} DefaultGraph
@@ -30,34 +30,34 @@ class Dataset extends Store {
      * @constructs Dataset
      */
     constructor(quads = []) {
-        super(quads, { factory: Dataset });
+        super(quads, {factory: Dataset});
     } // Dataset#constructor
 
     /**
      * Can be used to import a stream with ttl content.
-     * @param {Readable<TTL>} stream 
+     * @param {Readable<TTL>} stream
      * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
     async importTTL(stream, defaultGraph) {
         const parser = new StreamParser({
             factory: defaultGraph ? {
-                namedNode: Dataset.namedNode,
-                blankNode: Dataset.blankNode,
-                literal: Dataset.literal,
-                variable: Dataset.variable,
+                namedNode:    Dataset.namedNode,
+                blankNode:    Dataset.blankNode,
+                literal:      Dataset.literal,
+                variable:     Dataset.variable,
                 defaultGraph: () => defaultGraph,
-                quad: Dataset.quad,
-                fromTerm: Dataset.fromTerm,
-                fromQuad: Dataset.fromQuad
+                quad:         Dataset.quad,
+                fromTerm:     Dataset.fromTerm,
+                fromQuad:     Dataset.fromQuad
             } : Dataset
         });
         return this.import(parser.import(stream));
     } // Dataset#importTTL
 
     /**
-     * Can be used to load a ttl file from disc or from the web. 
-     * @param {URI} uri 
+     * Can be used to load a ttl file from disc or from the web.
+     * @param {URI} uri
      * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
@@ -68,8 +68,8 @@ class Dataset extends Store {
             return this.importTTL(reader, defaultGraph || new NamedNode(uri));
         } else {
             const response = await fetch(uri, {
-                method: 'get',
-                headers: { Accept: 'text/turtle' }
+                method:  'get',
+                headers: {Accept: 'text/turtle'}
             });
             return this.importTTL(response.body, defaultGraph || new NamedNode(uri));
         }
@@ -83,24 +83,24 @@ class Dataset extends Store {
      * @param {Boolean} [optns.meshed=true]
      * @returns {Map<URI, Object>}
      */
-    generateGraph(context = {}, { compact = true, meshed = true, blanks = false } = {}) {
+    generateGraph(context = {}, {compact = true, meshed = true, blanks = false} = {}) {
         const
             /** @type {Map<URI, Object>} */
             subjectMap = new Map(),
             /** @type {Map<URI, { "@id": String, [missingRef]: Array<[URI, URI]> }>} */
             missingMap = new Map(),
             /** @type {Map<URI, Object>} */
-            blankMap = new Map(),
+            blankMap   = new Map(),
             /** @type {Map<URI, URI>} */
-            idMap = new Map([
+            idMap      = new Map([
                 ['http://www.w3.org/1999/02/22-rdf-syntax-ns#type', '@type']
             ]),
             /** @type {Map<Prefix, URI>} */
-            prefixMap = new Map(Object.entries(context));
+            prefixMap  = new Map(Object.entries(context));
 
         /**
          * This function prefixes uris and caches them for this generation.
-         * @param {URI} uri 
+         * @param {URI} uri
          * @returns {URI}
          */
         function _prefixId(uri) {
@@ -128,7 +128,7 @@ class Dataset extends Store {
 
         /**
          * This function takes a term, returns the corresponding value in jsonld and caches any nodes.
-         * @param {Term} term 
+         * @param {Term} term
          * @returns {{"@id": String} | Object | String}
          */
         function _parseTerm(term) {
@@ -136,18 +136,18 @@ class Dataset extends Store {
             switch (term.termType) {
                 case 'NamedNode':
                     nodeId = _prefixId(term.value);
-                    node = subjectMap.get(nodeId) || missingMap.get(nodeId);
+                    node   = subjectMap.get(nodeId) || missingMap.get(nodeId);
                     if (!node) {
-                        node = { '@id': nodeId };
+                        node = {'@id': nodeId};
                         missingMap.set(nodeId, node);
                     }
                     break;
 
                 case 'BlankNode':
                     nodeId = term.value;
-                    node = blankMap.get(nodeId);
+                    node   = blankMap.get(nodeId);
                     if (!node) {
-                        node = blanks ? { '@id': nodeId } : {};
+                        node = blanks ? {'@id': nodeId} : {};
                         blankMap.set(nodeId, node);
                     }
                     break;
@@ -155,13 +155,13 @@ class Dataset extends Store {
                 case 'Literal':
                     if (term.lang) {
                         node = {
-                            '@value': term.value,
+                            '@value':    term.value,
                             '@language': term.lang
                         };
                     } else if (term.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
                         node = {
                             '@value': term.value,
-                            '@type': _prefixId(term.datatype.value)
+                            '@type':  _prefixId(term.datatype.value)
                         };
                     } else {
                         node = term.value;
@@ -177,16 +177,16 @@ class Dataset extends Store {
 
         /**
          * This function takes a quad and processes it to fill the graph and mesh nodes.
-         * @param {{subject: Term, predicate: Term, object: Term, graph: Term}} term 
+         * @param {{subject: Term, predicate: Term, object: Term, graph: Term}} term
          * @returns {undefined}
          */
-        function _processQuad({ subject, predicate, object, graph }) {
+        function _processQuad({subject, predicate, object, graph}) {
             const
                 subj = _parseTerm(subject),
                 pred = _prefixId(predicate.value),
-                obj = meshed || object.termType !== 'NamedNode' || (blanks && object.termType === 'BlankNode')
+                obj  = meshed || object.termType !== 'NamedNode' || (blanks && object.termType === 'BlankNode')
                     ? _parseTerm(object)
-                    : { '@id': _parseTerm(object)['@id'] };
+                    : {'@id': _parseTerm(object)['@id']};
 
             // add object to subject
             if (Array.isArray(subj[pred])) {
@@ -212,12 +212,33 @@ class Dataset extends Store {
 
     /**
      * Can be used to validate this dataset, if the given dataset contains shacl shapes.
-     * @param {Dataset} shapeset 
+     * @param {Dataset} shapeset
      * @returns {ValidationReport} https://www.npmjs.com/package/rdf-validate-shacl
      */
-    shaclValidate(shapeset) {
-        const validator = new SHACLValidator(shapeset, { factory: Dataset });
-        return validator.validate(this);
+    shaclValidate(shapeset, mode = "native") {
+        const
+            validator = new SHACLValidator(shapeset, {factory: Dataset}),
+            validated = validator.validate(this)
+        ;
+        let
+            result
+        ;
+        switch (mode) {
+            case "native":
+            case "nat":
+                result = validated;
+                break // native
+            case "ld+json":
+            case "json+ld":
+            case "json":
+                break; // ld+json
+            case "sh":
+            case "shacl":
+            case "turtle":
+            default:
+                break; // sh
+        } // switch(mode)
+        return result;
     } // Dataset#shaclValidate
 
     async exportTTL(context = {}) {
@@ -301,7 +322,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-addall
-     * @param {Array<Quad>} quads 
+     * @param {Array<Quad>} quads
      * @returns {Dataset} this
      */
     addAll(quads) {
@@ -311,7 +332,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-contains
-     * @param {Dataset} dataset 
+     * @param {Dataset} dataset
      * @returns {Boolean} true, if dataset is subset of this
      */
     contains(dataset) {
@@ -333,7 +354,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-difference
-     * @param {Dataset} dataset 
+     * @param {Dataset} dataset
      * @returns {Dataset} new dataset without the quads of the given dataset
      */
     difference(dataset) {
@@ -342,7 +363,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-equals
-     * @param {Dataset} dataset 
+     * @param {Dataset} dataset
      * @returns {Boolean} true, if graph structure is equal
      */
     equals(dataset) {
@@ -353,7 +374,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-every
-     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee 
+     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee
      * @returns {Boolean} true, if iteratee never returns false
      */
     every(iteratee) {
@@ -364,7 +385,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-filter
-     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee 
+     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee
      * @returns {Dataset} new dataset with all passing quads
      */
     filter(iteratee) {
@@ -377,7 +398,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-foreach
-     * @param {(quad: Quad, dataset: Dataset) => *} iteratee 
+     * @param {(quad: Quad, dataset: Dataset) => *} iteratee
      * @returns {Dataset} this
      */
     forEach(iteratee) {
@@ -389,7 +410,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-import
-     * @param {Readable<Quad>} stream 
+     * @param {Readable<Quad>} stream
      * @returns {Promise}
      */
     import(stream) {
@@ -402,7 +423,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-intersection
-     * @param {Dataset} dataset 
+     * @param {Dataset} dataset
      * @returns {Dataset} new dataset with all quads that are in both datasets
      */
     intersection(dataset) {
@@ -411,7 +432,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-map
-     * @param {(quad: Quad, dataset: Dataset) => Quad} iteratee 
+     * @param {(quad: Quad, dataset: Dataset) => Quad} iteratee
      * @returns {Dataset} new dataset with mapped quads
      */
     map(iteratee) {
@@ -424,7 +445,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-reduce
-     * @param {(acc: *, quad: Quad, dataset: Dataset) => *} iteratee 
+     * @param {(acc: *, quad: Quad, dataset: Dataset) => *} iteratee
      * @param {*} [initialValue]
      * @returns {*}
      */
@@ -437,7 +458,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-some
-     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee 
+     * @param {(quad: Quad, dataset: Dataset) => Boolean} iteratee
      * @returns {Boolean} true, if iteratee once returns true
      */
     some(iteratee) {
@@ -484,7 +505,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dfn-union
-     * @param {Dataset} dataset 
+     * @param {Dataset} dataset
      * @returns {Dataset} new dataset with all quads of both datasets
      */
     union(dataset) {
@@ -503,7 +524,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/dataset-spec/#dom-datasetfactory-dataset
-     * @param {Dataset|Array<Quad>|Iterable<Quad>} [quads] 
+     * @param {Dataset|Array<Quad>|Iterable<Quad>} [quads]
      * @returns {Dataset} new dataset with given quads
      */
     static dataset(quads) {
@@ -516,7 +537,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-namednode
-     * @param {URI} iri 
+     * @param {URI} iri
      * @returns {NamedNode}
      */
     static namedNode(iri) {
@@ -525,7 +546,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-blanknode
-     * @param {String} [id] 
+     * @param {String} [id]
      * @returns {BlankNode}
      */
     static blankNode(id) {
@@ -535,7 +556,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-literal
-     * @param {String} value 
+     * @param {String} value
      * @param {String|NamedNode} [langOrDatatype]
      * @returns {Literal}
      */
@@ -549,7 +570,7 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-variable
-     * @param {String} [name] 
+     * @param {String} [name]
      */
     static variable(name) {
         return new Variable(name);
@@ -565,10 +586,10 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-quad-0
-     * @param {Term} subject 
-     * @param {Term} predicate 
-     * @param {Term} object 
-     * @param {Term} [graph=this.defaultGraph()] 
+     * @param {Term} subject
+     * @param {Term} predicate
+     * @param {Term} object
+     * @param {Term} [graph=this.defaultGraph()]
      * @returns {Quad}
      */
     static quad(subject, predicate, object, graph = this.defaultGraph()) {
@@ -577,21 +598,25 @@ class Dataset extends Store {
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-fromterm
-     * @param {Term} original 
-     * @returns {Term} 
+     * @param {Term} original
+     * @returns {Term}
      */
     static fromTerm(original) {
         switch (original.termType) {
-            case 'NamedNode': return this.namedNode(original.value);
-            case 'BlankNode': return this.blankNode(original.value);
-            case 'Literal': return this.literal(original.value, original.lang, original.datatype);
-            case 'Variable': return this.variable(original.value);
+            case 'NamedNode':
+                return this.namedNode(original.value);
+            case 'BlankNode':
+                return this.blankNode(original.value);
+            case 'Literal':
+                return this.literal(original.value, original.lang, original.datatype);
+            case 'Variable':
+                return this.variable(original.value);
         }
     } // Dataset.fromTerm
 
     /**
      * https://rdf.js.org/data-model-spec/#dfn-fromquad
-     * @param {Quad} original 
+     * @param {Quad} original
      * @returns {Quad}
      */
     static fromQuad(original) {
