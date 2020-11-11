@@ -1,0 +1,7 @@
+@prefix ex: <http://example.org/stuff/1.0/> .
+
+ex:ValidCountry a ex:Country ;
+    ex:germanLabel "Spanien"@de .
+
+ex:InvalidCountry a ex:Country ;
+    ex:germanLabel "Spain"@en .

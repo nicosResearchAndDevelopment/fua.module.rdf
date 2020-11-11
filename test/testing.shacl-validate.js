@@ -26,7 +26,14 @@ const
     // const report = validator.validate(dataSet);
     const report = dataSet.shaclValidate(shapesSet);
 
-    console.log(report);
+    // console.log(report);
+    console.log(await report.dataset.exportTTL({
+        rdf: context.rdf,
+        rdfs: context.rdfs,
+        owl: context.owl,
+        dc: context.dc,
+        sh: context.sh
+    }));
     debugger;
 
 })(/* async-iife */).catch(console.error);

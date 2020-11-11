@@ -1,0 +1,12 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <http://example.org/stuff/1.0/> .
+
+ex:LanguageExampleShape
+    a sh:NodeShape ;
+    sh:targetClass ex:Country ;
+    sh:js [    # _:b1
+        a sh:JSConstraint ;   # This triple is optional
+        sh:message "Values are literals with German language tag." ;
+        sh:jsLibrary [ sh:jsLibraryURL "file://./germanLabel.js" ] ;
+        sh:jsFunctionName "validateGermanLabel" ;
+    ] .
