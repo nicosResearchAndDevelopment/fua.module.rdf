@@ -23,6 +23,14 @@ dataset.importTTL(stream: Readable<TTL>): Promise
 
 Can be used to import a stream with ttl content.
 
+### Dataset#importJSON
+
+```typescript
+dataset.importJSON(stream: Readable<JSONLD>): Promise
+```
+
+Can be used to import a stream with json-ld content.
+
 ### Dataset#loadTTL
 
 ```typescript
@@ -36,6 +44,18 @@ await Promise.all(
     dataset.loadTTL('http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
     dataset.loadTTL('file:///resource/ids-im/ontology.ttl')
 )
+```
+
+### Dataset#loadJSON
+
+```typescript
+dataset.loadJSON(uri: URI): Promise
+```
+
+Can be used to load a json-ld file from disc or from the web. 
+
+```javascript
+await dataset.loadJSON('http://xmlns.com/foaf/0.1')
 ```
 
 ### Dataset#generateGraph
