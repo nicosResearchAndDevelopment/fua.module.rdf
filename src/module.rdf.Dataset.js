@@ -62,7 +62,7 @@ class Dataset extends Store {
      * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
-    async importLD(stream, defaultGraph) {
+    async importJSON(stream, defaultGraph) {
         let jsonDoc = '';
         stream.on('data', chunk => { jsonDoc += chunk; });
         await new Promise(resolve => stream.on('end', resolve));
@@ -81,7 +81,7 @@ class Dataset extends Store {
             } : Dataset
         });
         return this.import(parser.import(quadStream));
-    } // Dataset#importLD
+    } // Dataset#importJSON
 
     /**
      * Can be used to load a ttl file from disc or from the web.
@@ -109,19 +109,19 @@ class Dataset extends Store {
      * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
-    async loadLD(uri, defaultGraph) {
+    async loadJSON(uri, defaultGraph) {
         if (uri instanceof URL) uri = uri.toString();
         if (isFileURL(uri)) {
             const reader = createReadStream(fileURLToPath(uri));
-            return this.importLD(reader, defaultGraph || new NamedNode(uri));
+            return this.importJSON(reader, defaultGraph || new NamedNode(uri));
         } else {
             const response = await fetch(uri, {
                 method:  'get',
                 headers: {Accept: 'application/ld+json'}
             });
-            return this.importLD(response.body, defaultGraph || new NamedNode(uri));
+            return this.importJSON(response.body, defaultGraph || new NamedNode(uri));
         }
-    } // Dataset#loadLD
+    } // Dataset#loadJSON
 
     /**
      * Can be used to generate a map with fully meshed nodes.
