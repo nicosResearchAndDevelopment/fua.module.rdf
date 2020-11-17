@@ -1,12 +1,13 @@
 const
-    {Readable, Writable}                                                                            = require('stream'),
-    {createReadStream}                                                                              = require('fs'),
-    {fileURLToPath, pathToFileURL, URL}                                                             = require('url'),
-    isFileURL                                                                                       = (re => re.test.bind(re))(/^file:\/\//),
-    fetch                                                                                           = require('node-fetch'),
-    SHACLValidator                                                                                  = require('rdf-validate-shacl'),
-    {Statement: Quad, NamedNode, BlankNode, Literal, Variable, Collection, Namespace, defaultGraph} = require('rdflib'),
-    {Store, StreamParser, Writer}                                                                   = require('n3');
+    {Readable, Writable}                                                      = require('stream'),
+    {createReadStream, readFile}                                              = require('fs'),
+    {fileURLToPath, pathToFileURL, URL}                                       = require('url'),
+    isFileURL                                                                 = (re => re.test.bind(re))(/^file:\/\//),
+    fetch                                                                     = require('node-fetch'),
+    SHACLValidator                                                            = require('rdf-validate-shacl'),
+    {Statement: Quad, NamedNode, BlankNode, Literal, Variable,  defaultGraph} = require('rdflib'),
+    {Store, StreamParser, Writer}                                             = require('n3'),
+    jsonld                                                                    = require('jsonld');
 
 /**
  * @typedef {NamedNode} DefaultGraph
@@ -56,6 +57,33 @@ class Dataset extends Store {
     } // Dataset#importTTL
 
     /**
+     * Can be used to import a stream with ttl content.
+     * @param {Readable<TTL>} stream
+     * @param {NamedNode} [defaultGraph]
+     * @returns {Promise}
+     */
+    async importLD(stream, defaultGraph) {
+        let jsonDoc = '';
+        stream.on('data', chunk => { jsonDoc += chunk; });
+        await new Promise(resolve => stream.on('end', resolve));
+        const nQuads = await jsonld.toRDF(JSON.parse(jsonDoc), {format: 'application/n-quads'});
+        const quadStream = Readable.from(nQuads.split('\n'));
+        const parser = new StreamParser({
+            factory: defaultGraph ? {
+                namedNode:    Dataset.namedNode,
+                blankNode:    Dataset.blankNode,
+                literal:      Dataset.literal,
+                variable:     Dataset.variable,
+                defaultGraph: () => defaultGraph,
+                quad:         Dataset.quad,
+                fromTerm:     Dataset.fromTerm,
+                fromQuad:     Dataset.fromQuad
+            } : Dataset
+        });
+        return this.import(parser.import(quadStream));
+    } // Dataset#importLD
+
+    /**
      * Can be used to load a ttl file from disc or from the web.
      * @param {URI} uri
      * @param {NamedNode} [defaultGraph]
@@ -74,6 +102,26 @@ class Dataset extends Store {
             return this.importTTL(response.body, defaultGraph || new NamedNode(uri));
         }
     } // Dataset#loadTTL
+
+    /**
+     * Can be used to load a json-ld file from disc or from the web.
+     * @param {URI} uri
+     * @param {NamedNode} [defaultGraph]
+     * @returns {Promise}
+     */
+    async loadLD(uri, defaultGraph) {
+        if (uri instanceof URL) uri = uri.toString();
+        if (isFileURL(uri)) {
+            const reader = createReadStream(fileURLToPath(uri));
+            return this.importLD(reader, defaultGraph || new NamedNode(uri));
+        } else {
+            const response = await fetch(uri, {
+                method:  'get',
+                headers: {Accept: 'application/ld+json'}
+            });
+            return this.importLD(response.body, defaultGraph || new NamedNode(uri));
+        }
+    } // Dataset#loadLD
 
     /**
      * Can be used to generate a map with fully meshed nodes.
@@ -218,7 +266,7 @@ class Dataset extends Store {
     shaclValidate(shapeset, mode = "native") {
         const
             validator = new SHACLValidator(shapeset, {factory: Dataset}),
-            validated = validator.validate(this)
+            report = validator.validate(this)
         ;
         let
             result
@@ -226,7 +274,7 @@ class Dataset extends Store {
         switch (mode) {
             case "native":
             case "nat":
-                result = validated;
+                result = report;
                 break // native
             case "ld+json":
             case "json+ld":
