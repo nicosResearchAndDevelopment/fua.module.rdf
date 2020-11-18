@@ -62,7 +62,7 @@ class Dataset extends Store {
      * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
-    async importJSON(stream, defaultGraph) {
+    async importJSONLD(stream, defaultGraph) {
         let jsonDoc = '';
         stream.on('data', chunk => { jsonDoc += chunk; });
         await new Promise(resolve => stream.on('end', resolve));
@@ -109,7 +109,7 @@ class Dataset extends Store {
      * @param {NamedNode} [defaultGraph]
      * @returns {Promise}
      */
-    async loadJSON(uri, defaultGraph) {
+    async loadJSONLD(uri, defaultGraph) {
         if (uri instanceof URL) uri = uri.toString();
         if (isFileURL(uri)) {
             const reader = createReadStream(fileURLToPath(uri));

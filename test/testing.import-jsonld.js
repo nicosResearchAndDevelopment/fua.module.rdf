@@ -5,7 +5,7 @@ const
 (async (/* async-iife */) => {
 
     const dataset = new Dataset();
-    await dataset.loadJSON('http://xmlns.com/foaf/0.1');
+    await dataset.loadJSONLD('http://xmlns.com/foaf/0.1');
     console.log(await dataset.exportTTL(context));
     debugger;
 
