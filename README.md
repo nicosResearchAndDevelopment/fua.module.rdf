@@ -23,10 +23,10 @@ dataset.importTTL(stream: Readable<TTL>): Promise
 
 Can be used to import a stream with ttl content.
 
-### Dataset#importJSON
+### Dataset#importJSONLD
 
 ```typescript
-dataset.importJSON(stream: Readable<JSONLD>): Promise
+dataset.importJSONLD(stream: Readable<JSONLD>): Promise
 ```
 
 Can be used to import a stream with json-ld content.
@@ -46,16 +46,16 @@ await Promise.all(
 )
 ```
 
-### Dataset#loadJSON
+### Dataset#loadJSONLD
 
 ```typescript
-dataset.loadJSON(uri: URI): Promise
+dataset.loadJSONLD(uri: URI): Promise
 ```
 
 Can be used to load a json-ld file from disc or from the web. 
 
 ```javascript
-await dataset.loadJSON('http://xmlns.com/foaf/0.1')
+await dataset.loadJSONLD('http://xmlns.com/foaf/0.1')
 ```
 
 ### Dataset#generateGraph
