@@ -6,6 +6,7 @@ const
     { isQuad, isNamedNode,  isLiteral, isSubject, isPredicate, isRDFObject: isObject } = require('rdflib'),
     { join: joinPath } = require('path'),
     { readFileSync } = require('fs'),
+    { EventEmitter } = require('events'),
     Query_size = _loadQuery('neo4j.size.cyp'),
     Query_addRelation = _loadQuery('neo4j.addRelation.cyp'),
     Query_addLiteral = _loadQuery('neo4j.addLiteral.cyp'),
@@ -78,7 +79,7 @@ async function _fetchData(driver, query, param) {
     }
 } // _fetchData
 
-class Neo4jStore {
+class Neo4jStore extends EventEmitter {
 
     #driver = null;
 
@@ -92,6 +93,7 @@ class Neo4jStore {
         if(!(driver && typeof driver.session === 'function'))
             throw new Error(`${module_name}#constructor : invalid driver`);
 
+        super();
         this.#driver = driver;
     } // Neo4jStore#constructor
 
@@ -118,9 +120,11 @@ class Neo4jStore {
                 predicate: quad.predicate,
                 object: quad.object,
                 ts: hrt()
-            });
+            }),
+            created = records.length > 0 && records[0].created;
 
-        return records.length > 0 && records[0].created;
+        if (created) this.emit('created', quad);
+        return created;
     } // Neo4jStore#add
 
     /**
@@ -136,9 +140,11 @@ class Neo4jStore {
                 subject: quad.subject,
                 predicate: quad.predicate,
                 object: quad.object
-            });
+            }),
+            deleted = records.length > 0 && records[0].deleted;
 
-        return records.length > 0 && records[0].deleted;
+        if (deleted) this.emit('deleted', quad);
+        return deleted;
     } // Neo4jStore#delete
 
     /**

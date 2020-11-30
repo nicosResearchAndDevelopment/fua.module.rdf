@@ -16,6 +16,9 @@ const
     await dataset.loadTTL(`file://${filePath}`);
     console.log('dataset-size:', dataset.size);
 
+    store.on('created', quad => console.log('created: ' + quad.toString()));
+    store.on('deleted', quad => console.log('deleted: ' + quad.toString()));
+
     if(in_parallel) {
         console.time('store in parallel');
         await Promise.all(
