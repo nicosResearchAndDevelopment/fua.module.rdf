@@ -81,6 +81,7 @@ async function _fetchData(driver, query, param) {
 
 class Neo4jStore extends EventEmitter {
 
+    #graph = null;
     #driver = null;
 
     /**
@@ -94,6 +95,7 @@ class Neo4jStore extends EventEmitter {
             throw new Error(`${module_name}#constructor : invalid driver`);
 
         super();
+        this.#graph = graph;
         this.#driver = driver;
     } // Neo4jStore#constructor
 
