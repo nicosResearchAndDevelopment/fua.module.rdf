@@ -656,7 +656,8 @@ class Dataset extends Store {
             case 'BlankNode':
                 return this.blankNode(original.value);
             case 'Literal':
-                return this.literal(original.value, original.lang, original.datatype);
+                // return this.literal(original.value, original.lang, original.datatype);
+                return this.literal(original.value, original.language || original.datatype);
             case 'Variable':
                 return this.variable(original.value);
         }
