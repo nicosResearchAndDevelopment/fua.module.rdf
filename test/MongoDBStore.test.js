@@ -22,18 +22,18 @@ describe('module.rdf.MongoDBStore', function() {
     //     mongo
 
     // INDEX: {
-    //     key: { subject: 1, predicate: 1, object: 1 },
     //     name: "tripel",
+    //     key: { subject: 1, predicate: 1, object: 1 },
     //     unique: true
     // }, {
-    //     key: { subject: 1 },
     //     name: "subject"
+    //     key: { subject: 1 },
     // }, {
-    //     key: { predicate: 1 },
     //     name: "predicate"
+    //     key: { predicate: 1 },
     // }, {
-    //     key: { object: 1 },
     //     name: "object"
+    //     key: { object: 1 },
     // }
 
     let client, store, graph, quad_1, quad_2;
