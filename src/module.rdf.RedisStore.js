@@ -177,24 +177,25 @@ class RedisStore extends EventEmitter {
         await Promise.all(quadKeys.map(async (quadKey) => {
             try {
                 const
-                    quad = await this.#client.HGETALL(quadKey),
+                    quadData = await this.#client.HGETALL(quadKey),
                     [subject, predicate, object] = await Promise.all(
-                        [quad.subject, quad.predicate, quad.object].map(async (key) => {
+                        [quadData.subject, quadData.predicate, quadData.object].map(async (key) => {
                             if (termCache.has(key))
                                 return termCache.get(key);
                             const node = await this.#client.HGETALL(key);
                             termCache.set(key, node);
                             return node;
                         })
-                    );
+                    ),
+                    quad = Dataset.fromQuad({
+                        termType: 'Quad',
+                        subject,
+                        predicate,
+                        object,
+                        graph: this.#graph
+                    });
 
-                dataset.add(Dataset.fromQuad({
-                    termType: 'Quad',
-                    subject,
-                    predicate,
-                    object,
-                    graph: this.#graph
-                }));
+                dataset.add(quad);
 
             } catch (err) {
                 console.error(err);

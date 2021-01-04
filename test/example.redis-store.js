@@ -10,7 +10,7 @@ const
 (async (/* async-iife */) => {
 
     const
-        client = await redis.createClient(),
+        client = await redis.createClient(graph.value),
         store = new RedisStore(graph, client),
         FLUSHALL = promisify(client.FLUSHALL).bind(client);
 
