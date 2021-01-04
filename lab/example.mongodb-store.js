@@ -46,7 +46,8 @@ async function _createIndex(collection) {
         db = client.db('MongoDBStore'),
         store = new MongoDBStore(graph, db);
 
-    // await _createIndex(db.collection('tripel'));
+    await _createIndex(db.collection('tripel'));
+    debugger;
 
     const
         q1 = quad(

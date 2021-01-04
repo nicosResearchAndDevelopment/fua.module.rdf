@@ -5,17 +5,43 @@ const
     { Dataset, MongoDBStore } = require('../src/module.rdf.js'),
     config = {
         url: 'mongodb://localhost:27017/',
-        db: 'MongoDBStore'
+        db: 'MongoDBStore',
+        options: {
+            useUnifiedTopology: true
+        }
     };
 
 describe('module.rdf.MongoDBStore', function() {
+
+    // https://hub.docker.com/_/mongo
+    // docker run
+    //     --publish=27017:27017
+    //     --volume=C:/Users/spetrac/Fua/fua-js/lib/module.rdf/test/data/mongodb:/data/db
+    //     --name=mongodb-store-test
+    //     --detach
+    //     mongo
+
+    // INDEX: {
+    //     key: { subject: 1, predicate: 1, object: 1 },
+    //     name: "tripel",
+    //     unique: true
+    // }, {
+    //     key: { subject: 1 },
+    //     name: "subject"
+    // }, {
+    //     key: { predicate: 1 },
+    //     name: "predicate"
+    // }, {
+    //     key: { object: 1 },
+    //     name: "object"
+    // }
 
     let client, store, graph, quad_1, quad_2;
 
     before('construct the client, the store, a graph node and two quads', async function() {
         graph = Dataset.namedNode(config.url);
         // mongod --port 27017 --dbpath .\test\data\mongodb
-        client = await MongoClient.connect(graph.value, { useUnifiedTopology: true });
+        client = await MongoClient.connect(graph.value, config.options);
         store = new MongoDBStore(graph, client.db(config.db));
         quad_1 = Dataset.quad(
             Dataset.namedNode('http://example.com/subject'),

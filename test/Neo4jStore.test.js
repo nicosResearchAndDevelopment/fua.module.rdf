@@ -2,20 +2,33 @@ const
     { describe, it, before } = require('mocha'),
     expect = require('expect'),
     neo4j = require('neo4j-driver'),
-    { Dataset, Neo4jStore } = require('../src/module.rdf.js');
+    { Dataset, Neo4jStore } = require('../src/module.rdf.js'),
+    config = {
+        url: 'bolt://localhost:7687/',
+        username: 'neo4j',
+        password: 'test'
+    };
 
 describe('module.rdf.Neo4jStore', function() {
 
-    // docker run \
-    //     --publish=7474:7474 --publish=7687:7687 \
-    //     --volume=C:/Users/spetrac/Fua/fua-js/lib/module.rdf/test/data/neo4j:/data \
+    // https://hub.docker.com/_/neo4j
+    // docker run
+    //     --publish=7474:7474
+    //     --publish=7687:7687
+    //     --volume=C:/Users/spetrac/Fua/fua-js/lib/module.rdf/test/data/neo4j:/data
+    //     --name=neo4j-store-test
+    //     --detach
     //     neo4j
+
+    // CREATE INDEX FOR (n:Term) ON (n.value)
+    // CREATE CONSTRAINT ON (n:NamedNode) ASSERT n.value IS UNIQUE
+    // CREATE CONSTRAINT ON (n:BlankNode) ASSERT n.value IS UNIQUE
 
     let driver, store, graph, quad_1, quad_2;
 
     before('construct the driver, the store, a graph node and two quads', async function() {
-        graph = Dataset.namedNode('bolt://localhost:7687/');
-        driver = neo4j.driver(graph.value, neo4j.auth.basic('neo4j', 'neo4j'));
+        graph = Dataset.namedNode(config.url);
+        driver = neo4j.driver(graph.value, neo4j.auth.basic(config.username, config.password));
         store = new Neo4jStore(graph, driver);
         quad_1 = Dataset.quad(
             Dataset.namedNode('http://example.com/subject'),

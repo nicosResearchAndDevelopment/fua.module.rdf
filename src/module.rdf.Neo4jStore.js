@@ -192,7 +192,7 @@ class Neo4jStore extends EventEmitter {
             dataset = new Dataset();
 
         for(let quadRecord of records) {
-            quadRecord.graph = Dataset.defaultGraph();
+            quadRecord.graph = this.#graph;
             dataset.add(Dataset.fromQuad(quadRecord));
         }
 
