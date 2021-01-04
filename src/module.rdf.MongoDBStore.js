@@ -113,7 +113,7 @@ class MongoDBStore extends EventEmitter {
             dataset = new Dataset();
 
         await findCursor.forEach((quadDoc) => {
-            quadDoc.graph = Dataset.defaultGraph();
+            quadDoc.graph = this.#graph;
             dataset.add(Dataset.fromQuad(quadDoc));
         });
 
