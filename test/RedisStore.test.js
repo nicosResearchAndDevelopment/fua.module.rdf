@@ -2,14 +2,17 @@ const
     { describe, it, before } = require('mocha'),
     expect = require('expect'),
     redis = require('redis'),
-    { Dataset, RedisStore } = require('../src/module.rdf.js');
+    { Dataset, RedisStore } = require('../src/module.rdf.js'),
+    config = {
+        url: 'redis://localhost:6379/'
+    };
 
 describe('module.rdf.RedisStore', function() {
 
     let client, store, graph, quad_1, quad_2;
 
     before('construct the client, the store, a graph node and two quads', async function() {
-        graph = Dataset.namedNode('redis://localhost:6379/');
+        graph = Dataset.namedNode(config.url);
         client = redis.createClient(graph.value);
         store = new RedisStore(graph, client);
         quad_1 = Dataset.quad(

@@ -2,17 +2,21 @@ const
     { describe, it, before } = require('mocha'),
     expect = require('expect'),
     { MongoClient } = require('mongodb'),
-    { Dataset, MongoDBStore } = require('../src/module.rdf.js');
+    { Dataset, MongoDBStore } = require('../src/module.rdf.js'),
+    config = {
+        url: 'mongodb://localhost:27017/',
+        db: 'MongoDBStore'
+    };
 
 describe('module.rdf.MongoDBStore', function() {
 
     let client, store, graph, quad_1, quad_2;
 
     before('construct the client, the store, a graph node and two quads', async function() {
-        graph = Dataset.namedNode('mongodb://localhost:27017/');
+        graph = Dataset.namedNode(config.url);
         // mongod --port 27017 --dbpath .\test\data\mongodb
         client = await MongoClient.connect(graph.value, { useUnifiedTopology: true });
-        store = new MongoDBStore(graph, client.db('MongoDBStore'));
+        store = new MongoDBStore(graph, client.db(config.db));
         quad_1 = Dataset.quad(
             Dataset.namedNode('http://example.com/subject'),
             Dataset.namedNode('http://example.com/predicate'),
