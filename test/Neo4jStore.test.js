@@ -9,20 +9,11 @@ const
         password: 'test'
     };
 
+// CREATE INDEX FOR (n:Term) ON (n.value)
+// CREATE CONSTRAINT ON (n:NamedNode) ASSERT n.value IS UNIQUE
+// CREATE CONSTRAINT ON (n:BlankNode) ASSERT n.value IS UNIQUE
+
 describe('module.rdf.Neo4jStore', function() {
-
-    // https://hub.docker.com/_/neo4j
-    // docker run
-    //     --publish=7474:7474
-    //     --publish=7687:7687
-    //     --volume=C:/Users/spetrac/Fua/fua-js/lib/module.rdf/test/data/neo4j:/data
-    //     --name=neo4j-store-test
-    //     --detach
-    //     neo4j
-
-    // CREATE INDEX FOR (n:Term) ON (n.value)
-    // CREATE CONSTRAINT ON (n:NamedNode) ASSERT n.value IS UNIQUE
-    // CREATE CONSTRAINT ON (n:BlankNode) ASSERT n.value IS UNIQUE
 
     let driver, store, graph, quad_1, quad_2;
 

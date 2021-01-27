@@ -9,14 +9,6 @@ const
 
 describe('module.rdf.RedisStore', function() {
 
-    // https://hub.docker.com/_/redis
-    // docker run
-    //     --publish=6379:6379
-    //     --volume=C:/Users/spetrac/Fua/fua-js/lib/module.rdf/test/data/redis:/data
-    //     --name=redis-store-test
-    //     --detach
-    //     redis redis-server
-
     let client, store, graph, quad_1, quad_2;
 
     before('construct the client, the store, a graph node and two quads', async function() {

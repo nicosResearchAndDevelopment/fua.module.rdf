@@ -11,36 +11,27 @@ const
         }
     };
 
+// INDEX: {
+//     name: "tripel",
+//     key: { subject: 1, predicate: 1, object: 1 },
+//     unique: true
+// }, {
+//     name: "subject"
+//     key: { subject: 1 },
+// }, {
+//     name: "predicate"
+//     key: { predicate: 1 },
+// }, {
+//     name: "object"
+//     key: { object: 1 },
+// }
+
 describe('module.rdf.MongoDBStore', function() {
-
-    // https://hub.docker.com/_/mongo
-    // docker run
-    //     --publish=27017:27017
-    //     --volume=C:/Users/spetrac/Fua/fua-js/lib/module.rdf/test/data/mongodb:/data/db
-    //     --name=mongodb-store-test
-    //     --detach
-    //     mongo
-
-    // INDEX: {
-    //     name: "tripel",
-    //     key: { subject: 1, predicate: 1, object: 1 },
-    //     unique: true
-    // }, {
-    //     name: "subject"
-    //     key: { subject: 1 },
-    // }, {
-    //     name: "predicate"
-    //     key: { predicate: 1 },
-    // }, {
-    //     name: "object"
-    //     key: { object: 1 },
-    // }
 
     let client, store, graph, quad_1, quad_2;
 
     before('construct the client, the store, a graph node and two quads', async function() {
         graph = Dataset.namedNode(config.url);
-        // mongod --port 27017 --dbpath .\test\data\mongodb
         client = await MongoClient.connect(graph.value, config.options);
         store = new MongoDBStore(graph, client.db(config.db));
         quad_1 = Dataset.quad(
