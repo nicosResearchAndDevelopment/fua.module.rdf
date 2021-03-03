@@ -1,5 +1,5 @@
 const
-    {Dataset}                           = require('@nrd/fua.module.persistence'),
+    {Dataset, wrapFactory}              = require('@nrd/fua.module.persistence'),
     {Readable, Writable}                = require('stream'),
     {createReadStream, readFile}        = require('fs'),
     {fileURLToPath, pathToFileURL, URL} = require('url'),
@@ -8,21 +8,6 @@ const
     SHACLValidator                      = require('rdf-validate-shacl'),
     {StreamParser, Writer}              = require('n3'),
     jsonld                              = require('jsonld');
-
-function wrapFactory(dataset) {
-    const factory        = {};
-    factory.namedNode    = (v) => dataset.factory.namedNode(v);
-    let vi               = 1;
-    factory.blankNode    = (v) => dataset.factory.blankNode(v || (vi++).toString());
-    factory.literal      = (v, l) => dataset.factory.literal(v, l);
-    factory.variable     = (v) => dataset.factory.variable(v);
-    factory.defaultGraph = () => dataset.factory.defaultGraph();
-    factory.quad         = (s, p, o, g) => dataset.factory.quad(s, p, o, g);
-    factory.fromTerm     = (t) => dataset.factory.fromTerm(t);
-    factory.fromQuad     = (q) => dataset.factory.fromQuad(q);
-    factory.dataset      = (q) => new Dataset(q, dataset.factory);
-    return factory;
-} // wrapFactory
 
 class ExtendedDataset extends Dataset {
 
@@ -42,7 +27,7 @@ class ExtendedDataset extends Dataset {
      */
     async importTTL(stream) {
         const parser = new StreamParser({
-            factory: wrapFactory(this)
+            factory: wrapFactory(this.factory)
         });
         return this.import(parser.import(stream));
     } // Dataset#importTTL
@@ -61,7 +46,7 @@ class ExtendedDataset extends Dataset {
         const nQuads     = await jsonld.toRDF(JSON.parse(jsonDoc), {format: 'application/n-quads'});
         const quadStream = Readable.from(nQuads.split('\n'));
         const parser     = new StreamParser({
-            factory: wrapFactory(this)
+            factory: wrapFactory(this.factory)
         });
         return this.import(parser.import(quadStream));
     } // Dataset#importJSON
@@ -246,7 +231,7 @@ class ExtendedDataset extends Dataset {
      */
     shaclValidate(shapeset) {
         const
-            validator = new SHACLValidator(shapeset, {factory: wrapFactory(this)}),
+            validator = new SHACLValidator(shapeset, {factory: wrapFactory(this.factory)}),
             report    = validator.validate(this);
         return report;
     } // Dataset#shaclValidate
