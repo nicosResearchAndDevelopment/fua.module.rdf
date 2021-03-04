@@ -2,7 +2,7 @@ const
     {describe, test} = require('mocha'),
     expect           = require('expect'),
     {join: joinPath} = require('path'),
-    Dataset          = require('./module.rdf.Dataset.js'),
+    Dataset          = require('./ExtendedDataset.js'),
     __data           = joinPath(__dirname, '../lab/data');
 
 describe.only('module.rdf.Dataset', function () {
