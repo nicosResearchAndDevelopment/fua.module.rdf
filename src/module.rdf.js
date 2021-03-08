@@ -2,18 +2,18 @@ const
     rdf                      = exports,
     _                        = require('./module.rdf.util.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
-    defaultFactory           = new TermFactory(),
     {Transform}              = require('stream'),
     //SHACLValidator          = require('rdf-validate-shacl'),
     {default: rdfParser}     = require('rdf-parse'),
     {default: rdfSerializer} = require('rdf-serialize'),
     contentTypes             = Object.freeze([
-        'application/n-quads', 'application/trig', 'application/ld+json',
-        'application/n-triples', 'text/turtle', 'text/rdf+xml'
+        'text/turtle', 'application/ld+json', 'text/rdf+xml',
+        'application/n-quads', 'application/n-triples', 'application/trig'
     ]);
 
+rdf.contentTypes = contentTypes;
+
 /**
- *
  * @param {TermFactory} factory
  * @returns {{namedNode, blankNode, literal, variable, defaultGraph, quad, fromTerm, fromQuad, dataset}}
  */
