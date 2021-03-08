@@ -2,6 +2,7 @@ const
     rdf                      = exports,
     _                        = require('./module.rdf.util.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
+    defaultFactory           = new TermFactory(),
     {Transform}              = require('stream'),
     //SHACLValidator          = require('rdf-validate-shacl'),
     {default: rdfParser}     = require('rdf-parse'),
@@ -78,7 +79,23 @@ rdf.serializeStream = function (quadStream, contentType, factory) {
     _.assert(quadStream.readableObjectMode, 'serializeStream : quadStream not in objectMode');
     _.assert(contentTypes.includes(contentType), 'serializeStream : unknown contentType');
 
-    const textStream = rdfSerializer.serialize(quadStream, {contentType});
+    const
+        transformStream = new Transform({
+            readableObjectMode: true,
+            writableObjectMode: true,
+            transform(quad, encoding, callback) {
+                try {
+                    _.assert(factory.isQuad(quad), 'serializeStream : invalid quad', TypeError);
+                    const transformed = factory.resolveQuad(quad);
+                    callback(null, transformed);
+                } catch (err) {
+                    callback(err);
+                }
+            }
+        }),
+        textStream      = rdfSerializer.serialize(transformStream, {contentType});
+
+    quadStream.pipe(transformStream);
     return textStream;
 }; // rdf.serializeStream
 
