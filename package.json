@@ -1,29 +1,24 @@
 {
-  "name": "fua.module.rdf",
+  "name": "@nrd/fua.module.rdf",
   "version": "1.0.0",
   "description": "",
   "main": "src/module.rdf.js",
   "dependencies": {
-    "node-fetch": "^2.6.1",
-    "rdf-validate-shacl": "^0.2.3",
-    "rdflib": "^1.3.1",
-    "n3": "^1.6.3",
-    "redis": "^3.0.2",
-    "neo4j-driver": "^4.2.1",
-    "mongodb": "^3.6.3"
+    "rdf-parse": "^1.7.0",
+    "rdf-serialize": "^1.1.0",
+    "@nrd/fua.module.persistence": "1.0.0"
   },
   "devDependencies": {
     "mocha": "^8.2.1",
     "expect": "^26.6.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "mocha": {
     "bail": false,
     "recursive": false,
-    "spec": "test/*.test.js",
-    "parallel": false
+    "spec": "test/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -31,12 +26,9 @@
   },
   "keywords": [
     "rdf",
-    "rdflib",
-    "rdf-ext",
-    "rdf-js",
     "jsonld",
     "turtle"
   ],
   "author": "spetrac@nicos-ag.com",
-  "license": ""
+  "license": "UNLICENSED"
 }
