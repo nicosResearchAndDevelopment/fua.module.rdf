@@ -1,5 +1,6 @@
 const
-    {Dataset, wrapFactory}              = require('@nrd/fua.module.persistence'),
+    {Dataset}                           = require('@nrd/fua.module.persistence'),
+    {wrapFactory}                       = require('@nrd/fua.module.rdf'),
     {Readable, Writable}                = require('stream'),
     {createReadStream, readFile}        = require('fs'),
     {fileURLToPath, pathToFileURL, URL} = require('url'),
