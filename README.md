@@ -8,6 +8,7 @@ import 'rdf-serialize'
 import '@nrd/fua.module.persistence'
 
 interface rdf {
+    contentTypes: ['text/turtle', 'application/ld+json', 'text/rdf+xml', 'application/n-quads', 'application/n-triples', 'application/trig'];
     wrapFactory(factory: TermFactory): Object<string, Function>;
     parseStream(textStream: Stream<string>, contentType: string, factory: TermFactory): Stream<Quad>;
     serializeStream(quadStream: Stream<Quad>, contentType: string, factory: TermFactory): Stream<string>;
