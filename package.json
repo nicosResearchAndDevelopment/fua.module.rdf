@@ -6,6 +6,7 @@
   "dependencies": {
     "rdf-parse": "^1.7.0",
     "rdf-serialize": "^1.1.0",
+    "n3": "^1.8.0",
     "@nrd/fua.module.persistence": "1.0.0"
   },
   "devDependencies": {

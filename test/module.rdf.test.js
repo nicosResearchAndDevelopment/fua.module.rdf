@@ -5,7 +5,7 @@ const
     {createReadStream}     = require('fs'),
     resourcePath           = process.env.FUA_RESOURCES,
     {TermFactory, Dataset} = require('@nrd/fua.module.persistence'),
-    context                = require('./context.json'),
+    context                = require('./data/context.json'),
     factory                = new TermFactory(context),
     rdf                    = require('../src/module.rdf.js'),
     loadScripts            = {
@@ -121,5 +121,27 @@ describe('module.rdf', function () {
         });
     }
 
-})
-;
+    test('shaclValidate', async function () {
+        const
+            /** @type {Array<{}>} */
+            dataFiles   = await rdf.loadDataFiles([
+                {
+                    'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
+                    'dct:format':     'text/turtle',
+                    'dct:title':      'my-data'
+                },
+                {
+                    'dct:identifier': joinPath(__dirname, 'data/my-shapes.ttl'),
+                    'dct:format':     'text/turtle',
+                    'dct:title':      'my-shapes'
+                }
+            ], factory),
+            datasets    = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
+            shaclReport = await rdf.shaclValidate(datasets['my-data'], datasets['my-shapes']);
+
+        expect(shaclReport).toBeInstanceOf(Dataset);
+        expect(shaclReport.factory).toBe(datasets['my-data'].factory);
+        //console.log(await rdf.serializeDataset(shaclReport, 'text/turtle'));
+        //debugger;
+    });
+});

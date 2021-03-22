@@ -139,6 +139,6 @@ async function loadRequirements(loaded, ...requires) {
 module.exports = async function (param) {
     _.assert(this instanceof TermFactory, 'load : invalid this', TypeError);
     const loaded = new Map();
-    await loadRequirements.call(this, loaded, param);
+    await loadRequirements.call(this, loaded, ...(Array.isArray(param) ? param : [param]));
     return Array.from(loaded.values());
 }; // exports
