@@ -96,7 +96,9 @@ describe('module.rdf', function () {
                 expect(typeof entry.title).toBe('string');
                 expect(typeof entry.alternative).toBe('string');
                 expect(Array.isArray(entry.requires)).toBeTruthy();
-                //expect(entry.requires.every(required => typeof required === 'string')).toBeTruthy();
+                for (let required of entry.requires) {
+                    expect(typeof required).toBe('string');
+                }
                 if (rdf.contentTypes.includes(entry.format)) {
                     expect(entry.dataset).toBeInstanceOf(Dataset);
                 }

@@ -138,6 +138,17 @@ rdf.transformStream = function (quadStream, transformer, factory) {
     return transformStream;
 }; // rdf.transformStream
 
+/**
+ * @typedef {{ '@context'?: 'fua.load.rdf', 'dct:identifier': string, 'dct:format': string, 'dct:title'?: string, 'dct:alternative'?: string, 'dct:requires'?: Array<FuaLoadRDF> }} FuaLoadRDF
+ */
+/**
+ * @typedef {{ identifier: string, format: string, title: string, alternative: string, requires: Array<string> }} FuaLoadRDFResult
+ */
+/**
+ * @param {FuaLoadRDF} config
+ * @param {TermFactory} [factory]
+ * @returns {Promise<Array<FuaLoadRDFResult>>}
+ */
 rdf.loadDataFiles = async function (config, factory = defaultFactory) {
     _.assert(_.isObject(config), 'loadDataset : invalid config');
     _.assert(factory instanceof TermFactory, 'loadDataset : invalid factory');

@@ -51,7 +51,7 @@ async function loadRegular(loaded, {
     _.assert(_.isString(identifier) && isAbsPath(identifier), `load : ${_fields.identifier} must be an absolute path`);
     title = title || getFileName(identifier, getExtName(identifier));
 
-    if (loaded.has(identifier)) return loaded.get(identifier);
+    if (loaded.has(identifier)) return identifier;
     const result = {identifier, title, alternative, format};
     loaded.set(identifier, result);
 
@@ -102,7 +102,7 @@ async function loadReference(loaded, {
     _.assert(format === fileType, `load : expected ${_fields.format} to be ${fileType}`);
     title = title || getFileName(identifier, getExtName(identifier));
 
-    if (loaded.has(identifier)) return loaded.get(identifier);
+    if (loaded.has(identifier)) return identifier;
     const result = {identifier, title, alternative, format};
     loaded.set(identifier, result);
 
