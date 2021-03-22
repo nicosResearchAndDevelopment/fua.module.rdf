@@ -1,6 +1,7 @@
 const
     rdf                      = exports,
     _                        = require('./module.rdf.util.js'),
+    loadDataset              = require('./module.rdf.load.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
     {Transform}              = require('stream'),
     //SHACLValidator          = require('rdf-validate-shacl'),
@@ -9,7 +10,8 @@ const
     contentTypes             = Object.freeze([
         'text/turtle', 'application/ld+json', 'text/rdf+xml',
         'application/n-quads', 'application/n-triples', 'application/trig'
-    ]);
+    ]),
+    defaultFactory           = new TermFactory();
 
 rdf.contentTypes = contentTypes;
 
@@ -135,6 +137,12 @@ rdf.transformStream = function (quadStream, transformer, factory) {
     quadStream.pipe(transformStream);
     return transformStream;
 }; // rdf.transformStream
+
+rdf.loadDataFiles = async function (config, factory = defaultFactory) {
+    _.assert(_.isObject(config), 'loadDataset : invalid config');
+    _.assert(factory instanceof TermFactory, 'loadDataset : invalid factory');
+    return await loadDataset.call(factory, config);
+}; // rdf.loadDataFiles
 
 /**
  * Can be used to generate a map with fully meshed nodes.
