@@ -78,6 +78,23 @@ describe('module.rdf', function () {
 
     test('transformStream');
 
+    test('generateGraph', async function () {
+        const
+            /** @type {Array<{}>} */
+            dataFiles = await rdf.loadDataFiles([
+                {
+                    'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
+                    'dct:format':     'text/turtle',
+                    'dct:title':      'my-data'
+                }
+            ], factory),
+            datasets  = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
+            graph     = rdf.generateGraph(datasets['my-data']);
+
+        expect(graph).toBeInstanceOf(Map);
+        expect(graph.size).toBeGreaterThan(0);
+    });
+
     for (let [scriptName, scriptPath] of Object.entries(loadScripts)) {
         test('loadDataFiles : ' + scriptName, async function () {
             const
