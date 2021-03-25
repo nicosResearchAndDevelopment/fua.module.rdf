@@ -1,6 +1,31 @@
 const
-    _           = exports,
-    MODULE_NAME = 'module.rdf';
+    _             = exports,
+    {PassThrough} = require('stream'),
+    MODULE_NAME   = 'module.rdf';
+
+_.mergeStreams = function (...streams) {
+    if (streams.length < 2) return streams[0];
+    const pass  = new PassThrough();
+    let waiting = streams.length;
+    for (let stream of streams) {
+        stream.pipe(pass, {end: false});
+        stream.once('end', () => --waiting === 0 && pass.end());
+    }
+    return pass;
+};
+
+_.concatStreams = function (...streams) {
+    if (streams.length < 2) return streams[0];
+    const pass = new PassThrough();
+    for (let i = 1; i < streams.length; i++) {
+        const prev = streams[i - 1], next = streams[i];
+        prev.once('end', () => next.pipe(pass, {end: false}));
+    }
+    const first = streams[0], last = streams[streams.length - 1];
+    first.pipe(pass, {end: false});
+    last.once('end', () => pass.end());
+    return pass;
+};
 
 _.assert = function (value, errMsg = 'undefined error', errType = Error) {
     if (!value) {

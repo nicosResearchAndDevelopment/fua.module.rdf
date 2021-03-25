@@ -5,7 +5,7 @@ const
     shaclValidate            = require('./module.rdf.shacl.js'),
     generateGraph            = require('./module.rdf.graph.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
-    {Transform}              = require('stream'),
+    {Readable, Transform}    = require('stream'),
     {default: rdfParser}     = require('rdf-parse'),
     {default: rdfSerializer} = require('rdf-serialize'),
     contentTypes             = Object.freeze([
@@ -100,6 +100,14 @@ rdf.serializeStream = function (quadStream, contentType, factory) {
 
     quadStream.pipe(transformStream);
     return textStream;
+
+    // REM: nice idea and it would work, but the problem is that prefixed iris also gets wrapped in <>
+    //const
+    //    prefixArray  = Object.entries(factory.context()).map(([prefix, iri]) => `@prefix ${prefix}: <${iri}> .\n`),
+    //    prefixStream = Readable.from([...prefixArray, '\n']),
+    //    textStream   = rdfSerializer.serialize(quadStream, {contentType});
+    //
+    //return _.concatStreams(prefixStream, textStream);
 }; // rdf.serializeStream
 
 /**
