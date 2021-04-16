@@ -131,28 +131,34 @@ rdf.serializeDataset = async function (dataset, contentType) {
         contextEntries = Object.entries(dataset.context());
 
     if (contentType === 'text/turtle') {
-        if (contextEntries.length === 0)
-            return textResult;
         const
-            prefixText = contextEntries.map(([prefix, iri]) => `@prefix ${prefix}: <${iri}>.`).join('\n'),
-            mainText   = textResult.replace(/<([^ <>"{}|^`\\]+)>/g, (match, original) => {
-                for (let [prefix, iri] of contextEntries) {
-                    if (original.startsWith(iri) && original.length > iri.length)
-                        return prefix + ':' + original.substr(iri.length);
-                }
-                return match;
-            });
-        return `${prefixText}\n\n${mainText}`;
+            prefixText = contextEntries.length > 0
+                ? contextEntries.map(([prefix, iri]) => `@prefix ${prefix}: <${iri}>.`).join('\n') + '\n\n'
+                : '',
+            mainText   = contextEntries.length > 0
+                ? textResult.replace(/<([^ <>"{}|^`\\]+)>/g, (match, original) => {
+                    for (let [prefix, iri] of contextEntries) {
+                        if (original.startsWith(iri) && original.length > iri.length)
+                            return prefix + ':' + original.substr(iri.length);
+                    }
+                    return match;
+                })
+                : textResult;
+        return prefixText + mainText;
     } else if (contentType === 'application/ld+json') {
         const
-            contextText = JSON.stringify(Object.fromEntries(contextEntries), null, 2),
-            graphText   = textResult.replace(/"([^ <>"{}|^`\\]+)"/g, (match, original) => {
-                for (let [prefix, iri] of contextEntries) {
-                    if (original.startsWith(iri) && original.length > iri.length)
-                        return '"' + prefix + ':' + original.substr(iri.length) + '"';
-                }
-                return match;
-            }).trim();
+            contextText = contextEntries.length > 0
+                ? JSON.stringify(Object.fromEntries(contextEntries), null, 2)
+                : '{}',
+            graphText   = contextEntries.length > 0
+                ? textResult.replace(/"([^ <>"{}|^`\\]+)"/g, (match, original) => {
+                    for (let [prefix, iri] of contextEntries) {
+                        if (original.startsWith(iri) && original.length > iri.length)
+                            return '"' + prefix + ':' + original.substr(iri.length) + '"';
+                    }
+                    return match;
+                }).trim()
+                : textResult.trim();
         return `{\n  "@context": ${contextText.replace(/^/mg, '  ')},\n  "@graph": ${graphText.replace(/^/mg, '  ')}\n}`;
     } else {
         return textResult;
