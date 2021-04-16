@@ -120,14 +120,43 @@ rdf.serializeDataset = async function (dataset, contentType) {
     _.assert(_.isString(contentType), 'serializeDataset : invalid contentType', TypeError);
     _.assert(contentTypes.includes(contentType), 'serializeDataset : unknown contentType');
 
-    const textStream = rdf.serializeStream(dataset.toStream(), contentType, dataset.factory);
+    const
+        textStream     = rdf.serializeStream(dataset.toStream(), contentType, dataset.factory),
+        textResult     = await new Promise((resolve, reject) => {
+            const chunks = [];
+            textStream.on('data', chunk => chunks.push(chunk.toString()));
+            textStream.on('error', err => reject(err));
+            textStream.on('end', () => resolve(chunks.join('')));
+        }),
+        contextEntries = Object.entries(dataset.context());
 
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        textStream.on('data', chunk => chunks.push(chunk.toString()));
-        textStream.on('error', err => reject(err));
-        textStream.on('end', () => resolve(chunks.join('')));
-    });
+    if (contentType === 'text/turtle') {
+        if (contextEntries.length === 0)
+            return textResult;
+        const
+            prefixText = contextEntries.map(([prefix, iri]) => `@prefix ${prefix}: <${iri}>.`).join('\n'),
+            mainText   = textResult.replace(/<([^ <>"{}|^`\\]+)>/g, (match, original) => {
+                for (let [prefix, iri] of contextEntries) {
+                    if (original.startsWith(iri) && original.length > iri.length)
+                        return prefix + ':' + original.substr(iri.length);
+                }
+                return match;
+            });
+        return `${prefixText}\n\n${mainText}`;
+    } else if (contentType === 'application/ld+json') {
+        const
+            contextText = JSON.stringify(Object.fromEntries(contextEntries), null, 2),
+            graphText   = textResult.replace(/"([^ <>"{}|^`\\]+)"/g, (match, original) => {
+                for (let [prefix, iri] of contextEntries) {
+                    if (original.startsWith(iri) && original.length > iri.length)
+                        return '"' + prefix + ':' + original.substr(iri.length) + '"';
+                }
+                return match;
+            }).trim();
+        return `{\n  "@context": ${contextText.replace(/^/mg, '  ')},\n  "@graph": ${graphText.replace(/^/mg, '  ')}\n}`;
+    } else {
+        return textResult;
+    }
 }; // rdf.serializeDataset
 
 /**
