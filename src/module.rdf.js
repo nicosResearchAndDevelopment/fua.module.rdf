@@ -9,8 +9,10 @@ const
     {default: rdfParser}     = require('rdf-parse'),
     {default: rdfSerializer} = require('rdf-serialize'),
     contentTypes             = Object.freeze([
-        'text/turtle', 'application/ld+json', 'text/rdf+xml',
-        'application/n-quads', 'application/n-triples', 'application/trig'
+        'text/turtle', 'application/ld+json',
+        'application/n-quads', 'application/n-triples', 'application/trig',
+        // REM: rdf+xml is currently only supported by the parser, not the serializer
+        'application/rdf+xml'
     ]),
     defaultFactory           = new TermFactory();
 

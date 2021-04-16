@@ -76,23 +76,41 @@ describe('module.rdf', function () {
 
     test('serializeStream');
 
-    test('serializeDataset', async function () {
+    test('serializeDataset to text/turtle', async function () {
         const
             /** @type {Array<{}>} */
-            dataFiles  = await rdf.loadDataFiles([
-                {
-                    'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
-                    'dct:format':     'text/turtle',
-                    'dct:title':      'my-data'
-                }
-            ], factory),
+            dataFiles  = await rdf.loadDataFiles([{
+                'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
+                'dct:format':     'text/turtle',
+                'dct:title':      'my-data'
+            }], factory),
             datasets   = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
-            textTurtle = await rdf.serializeDataset(datasets['my-data'], 'text/turtle'),
-            textJson   = await rdf.serializeDataset(datasets['my-data'], 'application/ld+json');
+            textTurtle = await rdf.serializeDataset(datasets['my-data'], 'text/turtle');
 
         expect(typeof textTurtle).toBe('string');
         expect(textTurtle).toMatch('@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>');
-        console.log(textJson);
+    });
+
+    test('serializeDataset to application/ld+json', async function () {
+        const
+            /** @type {Array<{}>} */
+            dataFiles = await rdf.loadDataFiles([{
+                'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
+                'dct:format':     'text/turtle',
+                'dct:title':      'my-data'
+            }], factory),
+            datasets  = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
+            textJSON  = await rdf.serializeDataset(datasets['my-data'], 'application/ld+json');
+
+        expect(typeof textJSON).toBe('string');
+        let json;
+        expect(() => (json = JSON.parse(textJSON))).not.toThrow();
+        expect(json['@context']).toMatchObject({
+            rdf:  'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+            owl:  'http://www.w3.org/2002/07/owl#'
+        });
+        expect(Array.isArray(json['@graph'])).toBeTruthy();
     });
 
     test('transformStream');
@@ -100,13 +118,11 @@ describe('module.rdf', function () {
     test('generateGraph', async function () {
         const
             /** @type {Array<{}>} */
-            dataFiles = await rdf.loadDataFiles([
-                {
-                    'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
-                    'dct:format':     'text/turtle',
-                    'dct:title':      'my-data'
-                }
-            ], factory),
+            dataFiles = await rdf.loadDataFiles([{
+                'dct:identifier': joinPath(__dirname, 'data/my-data.ttl'),
+                'dct:format':     'text/turtle',
+                'dct:title':      'my-data'
+            }], factory),
             datasets  = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
             graph     = rdf.generateGraph(datasets['my-data']);
 
