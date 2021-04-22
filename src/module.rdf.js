@@ -48,12 +48,13 @@ rdf.parseStream = function (textStream, contentType, factory, baseIRI) {
     _.assert(textStream && _.isFunction(textStream.pipe), 'parseStream : invalid textStream', TypeError);
     _.assert(_.isString(contentType), 'parseStream : invalid contentType', TypeError);
     _.assert(factory instanceof TermFactory, 'parseStream : invalid factory', TypeError);
+    if (baseIRI) _.assert(_.isString(baseIRI), 'parseStream : invalid factory');
 
     _.assert(!textStream.readableObjectMode, 'parseStream : textStream in objectMode');
     _.assert(contentTypes.includes(contentType), 'parseStream : unknown contentType ' + contentType);
 
     const
-        quadStream      = rdfParser.parse(textStream, {contentType, baseIRI}),
+        quadStream      = rdfParser.parse(textStream, {contentType, baseIRI: baseIRI || undefined}),
         transformStream = new Transform({
             readableObjectMode: true,
             writableObjectMode: true,
