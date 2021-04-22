@@ -41,9 +41,10 @@ rdf.wrapFactory = function (factory) {
  * @param {Readable<string>} textStream
  * @param {string} contentType
  * @param {TermFactory} factory
+ * @param {string} [baseIRI]
  * @returns {Readable<Quad>}
  */
-rdf.parseStream = function (textStream, contentType, factory) {
+rdf.parseStream = function (textStream, contentType, factory, baseIRI) {
     _.assert(textStream && _.isFunction(textStream.pipe), 'parseStream : invalid textStream', TypeError);
     _.assert(_.isString(contentType), 'parseStream : invalid contentType', TypeError);
     _.assert(factory instanceof TermFactory, 'parseStream : invalid factory', TypeError);
@@ -52,7 +53,7 @@ rdf.parseStream = function (textStream, contentType, factory) {
     _.assert(contentTypes.includes(contentType), 'parseStream : unknown contentType ' + contentType);
 
     const
-        quadStream      = rdfParser.parse(textStream, {contentType}),
+        quadStream      = rdfParser.parse(textStream, {contentType, baseIRI}),
         transformStream = new Transform({
             readableObjectMode: true,
             writableObjectMode: true,
