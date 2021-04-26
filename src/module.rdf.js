@@ -218,8 +218,8 @@ rdf.transformStream = function (quadStream, transformer, factory) {
  * @returns {Promise<Array<FuaLoadRDFResult>>}
  */
 rdf.loadDataFiles = async function (config, factory = defaultFactory) {
-    _.assert(_.isObject(config), 'loadDataset : invalid config');
-    _.assert(factory instanceof TermFactory, 'loadDataset : invalid factory');
+    _.assert(_.isObject(config), 'loadDataFiles : invalid config');
+    _.assert(factory instanceof TermFactory, 'loadDataFiles : invalid factory');
     return await loadDataFiles.call(factory, config);
 }; // rdf.loadDataFiles
 
@@ -235,11 +235,11 @@ rdf.loadDataFiles = async function (config, factory = defaultFactory) {
  * @deprecated
  */
 rdf.generateGraph = function (dataset, context = {}, {compact = true, meshed = true, blanks = false} = {}) {
-    _.assert(dataset instanceof Dataset, 'shaclValidate : invalid dataset', TypeError);
-    _.assert(_.isObject(context), 'shaclValidate : invalid context', TypeError);
-    _.assert(_.isBoolean(compact), 'shaclValidate : invalid config.compact', TypeError);
-    _.assert(_.isBoolean(meshed), 'shaclValidate : invalid config.meshed', TypeError);
-    _.assert(_.isBoolean(blanks), 'shaclValidate : invalid config.blanks', TypeError);
+    _.assert(dataset instanceof Dataset, 'generateGraph : invalid dataset', TypeError);
+    _.assert(_.isObject(context), 'generateGraph : invalid context', TypeError);
+    _.assert(_.isBoolean(compact), 'generateGraph : invalid config.compact', TypeError);
+    _.assert(_.isBoolean(meshed), 'generateGraph : invalid config.meshed', TypeError);
+    _.assert(_.isBoolean(blanks), 'generateGraph : invalid config.blanks', TypeError);
     return generateGraph(dataset, context, {compact, meshed, blanks});
 }; // rdf.generateGraph
 
