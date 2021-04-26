@@ -115,6 +115,19 @@ describe('module.rdf', function () {
 
     test('transformStream');
 
+    test('loadDataFiles', async function () {
+        const
+            /** @type {Array<{}>} */
+            results = await rdf.loadDataFiles({
+                'dct:identifier': joinPath(resourcePath, 'resource.ontologies/ontologies/rdf.ttl'),
+                'dct:format':     'text/turtle'
+            }, factory);
+
+        expect(Array.isArray(results)).toBeTruthy();
+        expect(results.length).toBeGreaterThan(0);
+        expect(results[0].dataset).toBeInstanceOf(Dataset);
+    });
+
     test('generateGraph', async function () {
         const
             /** @type {Array<{}>} */
