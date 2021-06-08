@@ -68,10 +68,10 @@ module.exports = function (dataset, context = {}, {compact = true, meshed = true
                 break;
 
             case 'Literal':
-                if (term.lang) {
+                if (term.language) {
                     node = {
                         '@value':    term.value,
-                        '@language': term.lang
+                        '@language': term.language
                     };
                 } else if (term.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
                     node = {
