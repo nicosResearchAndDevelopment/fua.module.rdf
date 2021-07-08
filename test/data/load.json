@@ -1,0 +1,21 @@
+{
+  "@context": "fua.load.rdf",
+  "dct:identifier": "./load.json",
+  "dct:format": "application/fua.load+json",
+  "dct:title": "load",
+  "dct:alternative": "Load Script",
+  "dct:requires": [
+    {
+      "dct:identifier": "./my-data.ttl",
+      "dct:format": "text/turtle",
+      "dct:title": "my-data",
+      "dct:alternative": "My Data"
+    },
+    {
+      "dct:identifier": "./my-shapes.ttl",
+      "dct:format": "text/turtle",
+      "dct:title": "my-shapes",
+      "dct:alternative": "My Shapes"
+    }
+  ]
+}

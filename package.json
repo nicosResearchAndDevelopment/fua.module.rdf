@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/module.rdf.js",
+  "files": [
+    "src/*"
+  ],
   "dependencies": {
     "rdf-parse": "^1.7.0",
     "rdf-serialize": "^1.1.0",
     "n3": "^1.8.0",
+    "rdf-validate-shacl": "^0.3.2",
     "@nrd/fua.module.persistence": "1.0.0"
   },
   "devDependencies": {

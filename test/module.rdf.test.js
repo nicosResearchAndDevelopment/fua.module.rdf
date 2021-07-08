@@ -3,15 +3,10 @@ const
     expect                 = require('expect'),
     {join: joinPath}       = require('path'),
     {createReadStream}     = require('fs'),
-    resourcePath           = process.env.FUA_RESOURCES,
     {TermFactory, Dataset} = require('@nrd/fua.module.persistence'),
     context                = require('./data/context.json'),
     factory                = new TermFactory(context),
-    rdf                    = require('../src/module.rdf.js'),
-    loadScripts            = {
-        'test.universe': joinPath(resourcePath, 'resource.universe/script/test.universe.next.js'),
-        'test.jott':     joinPath(resourcePath, 'resource.universe/script/test.jott.next.js')
-    };
+    rdf                    = require('../src/module.rdf.js');
 
 expect.extend({
     async toBeQuadStream(received, minQuads = 1, maxQuads = Infinity) {
@@ -115,19 +110,6 @@ describe('module.rdf', function () {
 
     test('transformStream');
 
-    test('loadDataFiles', async function () {
-        const
-            /** @type {Array<{}>} */
-            results = await rdf.loadDataFiles({
-                'dct:identifier': joinPath(resourcePath, 'resource.ontologies/ontologies/rdf.ttl'),
-                'dct:format':     'text/turtle'
-            }, factory);
-
-        expect(Array.isArray(results)).toBeTruthy();
-        expect(results.length).toBeGreaterThan(0);
-        expect(results[0].dataset).toBeInstanceOf(Dataset);
-    });
-
     test('generateGraph', async function () {
         const
             /** @type {Array<{}>} */
@@ -143,48 +125,46 @@ describe('module.rdf', function () {
         expect(graph.size).toBeGreaterThan(0);
     });
 
-    for (let [scriptName, scriptPath] of Object.entries(loadScripts)) {
-        test('loadDataFiles : ' + scriptName, async function () {
-            const
-                /** @type {Array<{}>} */
-                results = await rdf.loadDataFiles({
-                    'dct:identifier': scriptPath,
-                    'dct:format':     'application/fua.load+js'
-                }, factory);
+    test('loadDataFiles', async function () {
+        const
+            /** @type {Array<{}>} */
+            results = await rdf.loadDataFiles({
+                'dct:identifier': joinPath(__dirname, 'data/load.json'),
+                'dct:format':     'application/fua.load+json'
+            }, factory);
 
-            expect(Array.isArray(results)).toBeTruthy();
-            expect(results.every(entry => entry && typeof entry === 'object')).toBeTruthy();
+        expect(Array.isArray(results)).toBeTruthy();
+        expect(results.every(entry => entry && typeof entry === 'object')).toBeTruthy();
 
-            for (let entry of results) {
-                expect(typeof entry.identifier).toBe('string');
-                expect(typeof entry.format).toBe('string');
-                expect(typeof entry.title).toBe('string');
-                expect(typeof entry.alternative).toBe('string');
-                expect(Array.isArray(entry.requires)).toBeTruthy();
-                for (let required of entry.requires) {
-                    expect(typeof required).toBe('string');
-                }
-                if (rdf.contentTypes.includes(entry.format)) {
-                    expect(entry.dataset).toBeInstanceOf(Dataset);
-                }
+        for (let entry of results) {
+            expect(typeof entry.identifier).toBe('string');
+            expect(typeof entry.format).toBe('string');
+            expect(typeof entry.title).toBe('string');
+            expect(typeof entry.alternative).toBe('string');
+            expect(Array.isArray(entry.requires)).toBeTruthy();
+            for (let required of entry.requires) {
+                expect(typeof required).toBe('string');
             }
-
-            let
-                combined     = new Dataset(null, factory),
-                summedUpSize = 0;
-
-            for (let entry of results) {
-                if (entry.dataset) {
-                    combined.add(entry.dataset);
-                    summedUpSize += entry.dataset.size;
-                }
+            if (rdf.contentTypes.includes(entry.format)) {
+                expect(entry.dataset).toBeInstanceOf(Dataset);
             }
+        }
 
-            expect(combined).toBeInstanceOf(Dataset);
-            expect(combined.size).toBeGreaterThan(0);
-            expect(combined.size).toBeLessThanOrEqual(summedUpSize);
-        });
-    }
+        let
+            combined     = new Dataset(null, factory),
+            summedUpSize = 0;
+
+        for (let entry of results) {
+            if (entry.dataset) {
+                combined.add(entry.dataset);
+                summedUpSize += entry.dataset.size;
+            }
+        }
+
+        expect(combined).toBeInstanceOf(Dataset);
+        expect(combined.size).toBeGreaterThan(0);
+        expect(combined.size).toBeLessThanOrEqual(summedUpSize);
+    });
 
     test('shaclValidate', async function () {
         const
