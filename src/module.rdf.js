@@ -3,7 +3,8 @@ const
     _                        = require('./module.rdf.util.js'),
     loadDataFiles            = require('./module.rdf.load.js'),
     shaclValidate            = require('./module.rdf.shacl.js'),
-    generateGraph            = require('./module.rdf.graph.js'),
+    //generateGraph            = require('./module.rdf.graph.js'),
+    jsonModel                = require('./module.rdf.json-model.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
     {Readable, Transform}    = require('stream'),
     {default: rdfParser}     = require('rdf-parse'),
@@ -223,24 +224,41 @@ rdf.loadDataFiles = async function (config, factory = defaultFactory) {
     return await loadDataFiles.call(factory, config);
 }; // rdf.loadDataFiles
 
+const _graphOptionPresets = {
+    'default': {},
+    'flat':    {
+        meshed:   false,
+        blanks:   true,
+        compact:  false,
+        lists:    false,
+        prefixes: false,
+        strings:  false,
+        types:    false
+    },
+    'minimal': {
+        meshed:   true,
+        blanks:   false,
+        compact:  true,
+        lists:    true,
+        prefixes: true,
+        strings:  true,
+        types:    false
+    }
+};
+
 /**
  * Can be used to generate a map with fully meshed nodes.
  * @param {Dataset} dataset
- * @param {Object<Prefix, URI>} [context={}]
- * @param {Boolean} [compact=true]
- * @param {Boolean} [meshed=true]
- * @param {Boolean} [blanks=false]
+ * @param {object|string} [options]
  * @returns {Map<URI, Object>}
- *
- * @deprecated
  */
-rdf.generateGraph = function (dataset, context = {}, {compact = true, meshed = true, blanks = false} = {}) {
+rdf.generateGraph = function (dataset, options = 'default') {
     _.assert(dataset instanceof Dataset, 'generateGraph : invalid dataset', TypeError);
-    _.assert(_.isObject(context), 'generateGraph : invalid context', TypeError);
-    _.assert(_.isBoolean(compact), 'generateGraph : invalid config.compact', TypeError);
-    _.assert(_.isBoolean(meshed), 'generateGraph : invalid config.meshed', TypeError);
-    _.assert(_.isBoolean(blanks), 'generateGraph : invalid config.blanks', TypeError);
-    return generateGraph(dataset, context, {compact, meshed, blanks});
+    if (_.isString(options)) {
+        _.assert(options in _graphOptionPresets, 'generateGraph : preset "' + options + '" not found');
+        options = _graphOptionPresets[options];
+    }
+    return jsonModel.Graph.fromDataset(dataset, options);
 }; // rdf.generateGraph
 
 /**

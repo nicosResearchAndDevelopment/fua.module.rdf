@@ -1,4 +1,6 @@
 const
+    {inspect}              = require('util'),
+    logDeep                = (obj) => console.log(inspect(obj, {depth: Infinity})),
     {describe, test}       = require('mocha'),
     expect                 = require('expect'),
     {join: joinPath}       = require('path'),
@@ -119,10 +121,12 @@ describe('module.rdf', function () {
                 'dct:title':      'my-data'
             }], factory),
             datasets  = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
-            graph     = rdf.generateGraph(datasets['my-data']);
+            graph     = rdf.generateGraph(datasets['my-data'], 'default');
 
         expect(graph).toBeInstanceOf(Map);
         expect(graph.size).toBeGreaterThan(0);
+
+        //logDeep(graph.toArray());
     });
 
     test('loadDataFiles', async function () {

@@ -1,3 +1,14 @@
+/**
+ * Can be used to generate a map with fully meshed nodes.
+ * @param {Dataset} dataset
+ * @param {Object<Prefix, URI>} [context={}]
+ * @param {Boolean} [compact=true]
+ * @param {Boolean} [meshed=true]
+ * @param {Boolean} [blanks=false]
+ * @returns {Map<URI, Object>}
+ *
+ * @deprecated => TODO can be deleted
+ */
 module.exports = function (dataset, context = {}, {compact = true, meshed = true, blanks = false} = {}) {
     const
         /** @type {Map<URI, Object>} */
