@@ -101,6 +101,17 @@ model.Graph = class Graph extends Map {
         return Array.from(super.values());
     }
 
+    filter(iteratee) {
+        util.assert(util.isFunction(iteratee), 'expected iteratee to be a function', TypeError);
+        const result = [];
+        for (let [id, resource] of super.entries()) {
+            if (iteratee(resource, id, this)) {
+                result.push(resource);
+            }
+        }
+        return result;
+    } // filter
+
     queryAll(pathExpression) {
         util.assert(util.isString(pathExpression), 'expected pathExpression to be a string', TypeError);
         const results = new Set();
