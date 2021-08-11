@@ -19,18 +19,6 @@ exports = module.exports = {
 exports.strValidator = util.StringValidator;
 exports.arrValidator = util.ArrayValidator;
 
-exports.toArray = function (arrayLike) {
-    if (!arrayLike) {
-        return [];
-    } else if (typeof arrayLike === 'object') {
-        if (Array.isArray(arrayLike)) return arrayLike;
-        else if (typeof arrayLike[Symbol.iterator] === 'function') return Array.from(arrayLike);
-        else return [arrayLike];
-    } else {
-        return [arrayLike];
-    }
-}; // toArray
-
 exports.mergeStreams = function (...streams) {
     if (streams.length < 2) return streams[0];
     const pass  = new PassThrough();
