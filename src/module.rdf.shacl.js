@@ -80,14 +80,15 @@ function _n3StoreToDataset(store, factory) {
 /**
  * @param {Dataset} dataset
  * @param {Dataset} shapeset
- * @returns {Promise<Dataset>}
+ // * @returns {Promise<Dataset>}
+ * @returns {Promise<{conforms: boolean, dataset: Dataset}>}
  */
 module.exports = async function (dataset, shapeset) {
     /*  REM
         The following conversion of datasets into n3 stores is necessary, because the rdf-validate-shacl package
         causes bugs because of some of its dependencies. They claim that it would be compatible with
-        rdf/js compliant factories, but it turned out that it was not even easily compatible with 
-        major rdf/js implementations, like n3 and rdflib. The N3Store and N3DataFactory are wrapper of n3 
+        rdf/js compliant factories, but it turned out that it was not even easily compatible with
+        major rdf/js implementations, like n3 and rdflib. The N3Store and N3DataFactory are wrapper of n3
         and necessary to add missing functionality on which rdf-validate-shacl relies on. The results are
         then again transformed back into a dataset.
         */
@@ -97,5 +98,9 @@ module.exports = async function (dataset, shapeset) {
         _validator = new SHACLValidator(_shapeset, {factory: N3DataFactory}),
         _report    = await _validator.validate(_dataset);
 
-    return _n3StoreToDataset(_report.dataset, dataset.factory);
+    // return _n3StoreToDataset(_report.dataset, dataset.factory);
+    return {
+        conforms: _report.conforms,
+        dataset:  _n3StoreToDataset(_report.dataset, dataset.factory)
+    };
 }; // exports
