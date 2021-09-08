@@ -1,0 +1,14 @@
+{
+    "@context": {
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "ex": "http://example.org/"
+    },
+    "@graph": [{
+        "@id": "ex:test-2",
+        "@type": ["owl:Thing"],
+        "rdfs:comment": [{
+            "@value": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
+        }]
+    }]
+}

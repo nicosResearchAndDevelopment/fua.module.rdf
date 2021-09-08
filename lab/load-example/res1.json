@@ -1,0 +1,16 @@
+{
+  "dct:identifier": "./res1.json",
+  "dct:title": "res1",
+  "dct:alternative": "resource 1",
+  "dct:format": "application/fua.load+json",
+  "dct:requires": [
+    {
+      "dct:identifier": "./res2.js",
+      "dct:format": "application/fua.load+js"
+    },
+    {
+      "dct:identifier": "./res3.ttl",
+      "dct:format": "text/turtle"
+    }
+  ]
+}
