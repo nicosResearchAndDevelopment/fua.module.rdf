@@ -39,8 +39,9 @@ describe('module.rdf.json-model', function () {
         //expect(ex_hello['ex:list'][0]).toBeInstanceOf(jsonModel.List);
 
         //console.log(old_graph);
-        //console.log(graph);
-        logDeep(ex_hello);
+        console.log(graph);
+        // logDeep(ex_hello);
+        debugger;
     });
 
 });

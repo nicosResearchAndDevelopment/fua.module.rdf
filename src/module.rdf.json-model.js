@@ -32,9 +32,10 @@ model.Resource = class Resource {
 
 model.List = class List {
 
-    constructor() {
+    constructor(...elems) {
         this['@list'] = [];
         util.lockProp(this, '@list');
+        elems.flat(1).forEach(this.add.bind(this));
     } // constructor
 
     add(elem) {
@@ -54,6 +55,10 @@ model.List = class List {
 }; // model.List
 
 model.Graph = class Graph extends Map {
+
+    get [Symbol.toStringTag]() {
+        return model.Graph.name;
+    }
 
     /**
      * @param {string|model.Resource} id
@@ -99,7 +104,7 @@ model.Graph = class Graph extends Map {
 
     toArray() {
         return Array.from(super.values());
-    }
+    } // toArray
 
     filter(iteratee) {
         util.assert(util.isFunction(iteratee), 'expected iteratee to be a function', TypeError);
@@ -154,6 +159,27 @@ model.Graph = class Graph extends Map {
         }
         return result;
     } // getAllByAnyType
+
+    literal(...args) {
+        return new model.Literal(...args);
+    } // literal
+
+    resource(...args) {
+        return new model.Resource(...args);
+    } // resource
+
+    list(...args) {
+        return new model.List(...args);
+    } // list
+
+    /**
+     * @param {persistence.TermFactory} factory
+     */
+    toDataset(factory) {
+        util.assert(factory instanceof persistence.TermFactory, 'expected factory to be a TermFactory', TypeError);
+        util.assert(false, 'not implemented yet');
+        // TODO
+    } // toDataset
 
     /**
      * @param {persistence.Dataset} dataset

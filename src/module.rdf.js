@@ -3,7 +3,6 @@ const
     _                        = require('./module.rdf.util.js'),
     loadDataFiles            = require('./module.rdf.load.js'),
     shaclValidate            = require('./module.rdf.shacl.js'),
-    //generateGraph            = require('./module.rdf.graph.js'),
     jsonModel                = require('./module.rdf.json-model.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
     {Readable, Transform}    = require('stream'),
