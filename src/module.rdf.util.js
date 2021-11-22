@@ -1,6 +1,7 @@
 const
     {PassThrough} = require('stream'),
-    util          = require('@nrd/fua.core.util');
+    util          = require('@nrd/fua.core.util'),
+    uuid          = require('@nrd/fua.core.uuid');
 
 exports = module.exports = {
     ...util,
@@ -41,4 +42,8 @@ exports.concatStreams = function (...streams) {
     first.pipe(pass, {end: false});
     last.once('end', () => pass.end());
     return pass;
+};
+
+exports.generateFileId = function () {
+    return 'file://' + uuid.v4();
 };

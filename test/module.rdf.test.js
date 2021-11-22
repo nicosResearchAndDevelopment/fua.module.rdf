@@ -139,6 +139,7 @@ describe('module.rdf', function () {
 
         expect(Array.isArray(results)).toBeTruthy();
         expect(results.every(entry => entry && typeof entry === 'object')).toBeTruthy();
+        console.log(results);
 
         for (let entry of results) {
             expect(typeof entry.identifier).toBe('string');
