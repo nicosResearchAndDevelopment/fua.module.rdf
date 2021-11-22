@@ -207,10 +207,10 @@ rdf.transformStream = function (quadStream, transformer, factory) {
 }; // rdf.transformStream
 
 /**
- * @typedef {{ '@context'?: 'fua.load.rdf', 'dct:identifier': string, 'dct:format': string, 'dct:title'?: string, 'dct:alternative'?: string, 'dct:requires'?: Array<FuaLoadRDF> }} FuaLoadRDF
+ * @typedef {{ '@context'?: 'fua.load.rdf', '@id'?: string, 'dct:identifier': string, 'dct:format': string, 'dct:title'?: string, 'dct:alternative'?: string, 'dct:requires'?: Array<FuaLoadRDF> }} FuaLoadRDF
  */
 /**
- * @typedef {{ identifier: string, format: string, title: string, alternative: string, requires: Array<string>, dataset?: Dataset }} FuaLoadRDFResult
+ * @typedef {{ id: string, identifier: string, format: string, title: string, alternative: string, requires: Array<string>, dataset?: Dataset }} FuaLoadRDFResult
  */
 /**
  * @param {FuaLoadRDF|Array<FuaLoadRDF>} config
