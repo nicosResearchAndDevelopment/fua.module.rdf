@@ -43,7 +43,7 @@ async function parseRdfFile(filePath, contentType) {
  * @returns {Promise<string>}
  */
 async function loadRegular(loaded, {
-    [_fields.id]:          id = _.generateFileId(),
+    [_fields.id]:          id,
     [_fields.identifier]:  identifier = '',
     [_fields.title]:       title = '',
     [_fields.alternative]: alternative = '',
@@ -54,7 +54,10 @@ async function loadRegular(loaded, {
     title = title || getFileName(identifier, getExtName(identifier));
 
     if (loaded.has(identifier)) return identifier;
-    const result = {id, identifier, title, alternative, format};
+    const result = {
+        id: this.termToId(this.namedNode(id || _.generateFileId())),
+        identifier, title, alternative, format
+    };
     loaded.set(identifier, result);
 
     // result.dataset = await parseRdfFile(identifier, format);
@@ -93,7 +96,7 @@ async function loadReference(loaded, {
             else return value;
         }),
         {
-            [_fields.id]:          id          = _.generateFileId(),
+            [_fields.id]:          id,
             [_fields.identifier]:  identifier  = filePath,
             [_fields.title]:       title       = '',
             [_fields.alternative]: alternative = '',
@@ -106,7 +109,10 @@ async function loadReference(loaded, {
     title = title || getFileName(identifier, getExtName(identifier));
 
     if (loaded.has(identifier)) return identifier;
-    const result = {id, identifier, title, alternative, format};
+    const result = {
+        id: this.termToId(this.namedNode(id || _.generateFileId())),
+        identifier, title, alternative, format
+    };
     loaded.set(identifier, result);
 
     result.requires = await loadRequirements.call(this, loaded, ...requires);
