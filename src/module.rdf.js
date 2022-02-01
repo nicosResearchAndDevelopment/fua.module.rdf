@@ -223,6 +223,10 @@ rdf.loadDataFiles = async function (config, factory = defaultFactory) {
     return await loadDataFiles.call(factory, config);
 }; // rdf.loadDataFiles
 
+/**
+ * @type {{[key: FuaGraphPreset]: FuaGraphOptions}}
+ * @private
+ */
 const _graphOptionPresets = {
     'default': {},
     'flat':    {
@@ -246,9 +250,22 @@ const _graphOptionPresets = {
 };
 
 /**
+ * @typedef {"default"|"flat"|"minimal"} FuaGraphPreset
+ */
+/**
+ * @typedef {{}} FuaGraphOptions
+ * @property {boolean} meshed If true, the graph uses real object references, else it uses @id references.
+ * @property {boolean} blanks If true, the blank nodes will be added to the graph, else they will only be included in the references.
+ * @property {boolean} compact If true, single references will be referenced directly, else an array will always be used.
+ * @property {boolean} lists If true, rdf collections will be collected in a list array, else they will be referenced as chain.
+ * @property {boolean} prefixes If true, the prefixed ids will be used, else they will be resolved to full iris.
+ * @property {boolean} strings If true, xsd strings will be used directly, else they will also be used with @value.
+ * @property {boolean} types If true, the types will reference the type node, else it uses string id references.
+ */
+/**
  * Can be used to generate a map with fully meshed nodes.
  * @param {Dataset} dataset
- * @param {object|string} [options]
+ * @param {FuaGraphPreset|FuaGraphOptions} [options]
  * @returns {Map<URI, Object>}
  */
 rdf.generateGraph = function (dataset, options = 'default') {
