@@ -18,6 +18,10 @@ model.Literal = class Literal {
         util.lockProp(this, '@value', '@language', '@type');
     } // constructor
 
+    valueOf() {
+        return util.nativeValueParser(this['@type'], this['@value']);
+    } // valueOf
+
 }; // model.Literal
 
 model.Resource = class Resource {

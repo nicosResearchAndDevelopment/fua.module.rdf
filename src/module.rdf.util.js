@@ -47,3 +47,58 @@ exports.concatStreams = function (...streams) {
 exports.generateFileId = function () {
     return 'file://' + uuid.v4();
 };
+
+const
+    xsd_prefix = 'xsd:',
+    xsd_iri    = 'http://www.w3.org/2001/XMLSchema#';
+
+exports.nativeValueParser = function (type, value) {
+    switch (type) {
+        case xsd_prefix + 'boolean':
+        case xsd_iri + 'boolean':
+            return !['false', 'null', 'off', 'no', 'n', 'f', '0', ''].includes(value.toLowerCase());
+
+        case xsd_prefix + 'integer':
+        case xsd_iri + 'integer':
+        case xsd_prefix + 'nonNegativeInteger':
+        case xsd_iri + 'nonNegativeInteger':
+        case xsd_prefix + 'positiveInteger':
+        case xsd_iri + 'positiveInteger':
+        case xsd_prefix + 'nonPositiveInteger':
+        case xsd_iri + 'nonPositiveInteger':
+        case xsd_prefix + 'negativeInteger':
+        case xsd_iri + 'negativeInteger':
+        case xsd_prefix + 'byte':
+        case xsd_iri + 'byte':
+        case xsd_prefix + 'unsignedByte':
+        case xsd_iri + 'unsignedByte':
+        case xsd_prefix + 'int':
+        case xsd_iri + 'int':
+        case xsd_prefix + 'unsignedInt':
+        case xsd_iri + 'unsignedInt':
+        case xsd_prefix + 'long':
+        case xsd_iri + 'long':
+        case xsd_prefix + 'unsignedLong':
+        case xsd_iri + 'unsignedLong':
+        case xsd_prefix + 'short':
+        case xsd_iri + 'short':
+        case xsd_prefix + 'unsignedShort':
+        case xsd_iri + 'unsignedShort':
+            return parseInt(value);
+
+        case xsd_prefix + 'decimal':
+        case xsd_iri + 'decimal':
+        case xsd_prefix + 'float':
+        case xsd_iri + 'float':
+        case xsd_prefix + 'double':
+        case xsd_iri + 'double':
+            return parseFloat(value);
+
+        case xsd_prefix + 'string':
+        case xsd_iri + 'string':
+        case xsd_prefix + 'anyURI':
+        case xsd_iri + 'anyURI':
+        default:
+            return value;
+    }
+}; // nativeValueParser
