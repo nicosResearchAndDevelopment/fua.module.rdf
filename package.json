@@ -2,7 +2,17 @@
   "name": "@nrd/fua.module.rdf",
   "version": "1.0.0",
   "description": "",
-  "main": "src/module.rdf.js",
+  "exports": {
+    ".": {
+      "require": "./src/module.rdf.js"
+    },
+    "./term-factory": {
+      "require": "./src/factory/term-factory.default.js"
+    },
+    "./data-factory": {
+      "require": "./src/factory/data-factory.default.js"
+    }
+  },
   "files": [
     "src/*"
   ],
