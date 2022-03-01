@@ -9,7 +9,22 @@ ex:Hello
     rdfs:comment "Hello to the world!"@en ;
     rdfs:comment "This is a second comment and should not be conform." ;
     ex:list      ( "Hello" "World" "!" ex:Hello ) ;
-    ex:list      ( ) .
+    ex:list      ( [ a          ex:Test ;
+                     rdfs:label "test-1" ;
+                     ex:list    ( [ a          ex:Test ;
+                                    rdfs:label "test-1-1" ; ]
+                                  [ a          ex:Test ;
+                                    rdfs:label "test-1-2" ; ] ) ; ]
+                   [ a          ex:Test ;
+                     rdfs:label "test-2" ; ]
+                   [ a          ex:Test ;
+                     rdfs:label "test-3" ;
+                     ex:list    ( [ a          ex:Test ;
+                                    rdfs:label "test-3-1" ;
+                                    ex:list    ( [ a          ex:Test ;
+                                                   rdfs:label "test-3-1-1" ; ] ) ; ]
+                                  [ a          ex:Test ;
+                                    rdfs:label "test-3-2" ; ] ) ; ] ) .
 
 ex:
     owl:imports <file:./my-shapes.ttl> .

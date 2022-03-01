@@ -21,15 +21,25 @@ describe('module.rdf.json-model', function () {
                 'dct:title':      'my-data'
             }], factory),
             datasets  = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
-            graph     = jsonModel.Graph.fromDataset(datasets['my-data'], {
+            // options   = {
+            //     meshed:   true,
+            //     blanks:   false,
+            //     compact:  true,
+            //     lists:    false,
+            //     prefixes: true,
+            //     strings:  true,
+            //     types:    false
+            // },
+            options   = {
                 meshed:   true,
                 blanks:   false,
                 compact:  true,
-                lists:    false,
+                lists:    true,
                 prefixes: true,
                 strings:  true,
                 types:    false
-            });
+            },
+            graph     = jsonModel.Graph.fromDataset(datasets['my-data'], options);
 
         expect(graph).toBeInstanceOf(Map);
         expect(graph.size).toBeGreaterThan(0);
@@ -38,9 +48,8 @@ describe('module.rdf.json-model', function () {
         expect(ex_hello).toBeInstanceOf(jsonModel.Resource);
         //expect(ex_hello['ex:list'][0]).toBeInstanceOf(jsonModel.List);
 
-        //console.log(old_graph);
-        console.log(graph);
-        // logDeep(ex_hello);
+        // console.log(graph);
+        logDeep(ex_hello);
         debugger;
     });
 

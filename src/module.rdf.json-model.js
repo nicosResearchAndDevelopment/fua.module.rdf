@@ -271,7 +271,7 @@ model.Graph = class Graph extends Map {
                 objNode  = _getObjectNode(object),
                 predKey  = _getPredicateKey(predicate);
             _extendResource(subjNode, predKey, optTypes || predKey !== '@type' ? objNode : objNode['@id']);
-        }
+        } // for (quad of dataset)
 
         if (optLists) {
             function _isListNode(objNode) {
@@ -279,7 +279,7 @@ model.Graph = class Graph extends Map {
                 if (objNode['@id'] === rdf_nil) return true;
                 if (!optMeshed) objNode = graph.get(objNode['@id']) || missing.get(objNode['@id']) || objNode;
                 return rdf_first in objNode;
-            }
+            } // _isListNode
 
             function _collectList(objNode) {
                 const listNode = new model.List();
@@ -291,21 +291,26 @@ model.Graph = class Graph extends Map {
                     objNode = optCompact ? restNode : restNode[0];
                 }
                 return listNode;
-            }
+            } // _collectList
 
-            for (let subjNode of graph.values()) {
-                for (let [predKey, objNode] of Object.entries(subjNode)) {
-                    if (predKey.startsWith('@')) continue;
-                    if (util.isArray(objNode)) {
-                        for (let [index, entryNode] of objNode.entries()) {
-                            if (_isListNode(entryNode)) objNode[index] = _collectList(entryNode);
+            function _searchNodes(nodeIterator) {
+                for (let subjNode of nodeIterator) {
+                    for (let [predKey, objNode] of Object.entries(subjNode)) {
+                        if (predKey.startsWith('@')) continue;
+                        if (util.isArray(objNode)) {
+                            for (let [index, entryNode] of objNode.entries()) {
+                                if (_isListNode(entryNode)) objNode[index] = _collectList(entryNode);
+                            }
+                        } else {
+                            if (_isListNode(objNode)) subjNode[predKey] = _collectList(objNode);
                         }
-                    } else {
-                        if (_isListNode(objNode)) subjNode[predKey] = _collectList(objNode);
                     }
                 }
-            }
-        }
+            } // _searchNodes
+
+            _searchNodes(graph.values());
+            _searchNodes(missing.values());
+        } // if (optLists)
 
         return graph;
     } // static fromDataset
