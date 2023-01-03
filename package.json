@@ -22,9 +22,10 @@
     "n3": "^1.8.0",
     "rdf-validate-shacl": "^0.3.2",
     "jsonpath": "^1.1.1",
-    "@nrd/fua.core.util": "1.0.0",
-    "@nrd/fua.core.uuid": "1.0.0",
-    "@nrd/fua.module.persistence": "1.0.0"
+    "@nrd/fua.core.util": "^1.0.0",
+    "@nrd/fua.core.uuid": "^1.0.0",
+    "@nrd/fua.module.persistence": "^1.0.0",
+    "@nrd/fua.resource.data": "^1.0.0"
   },
   "devDependencies": {
     "mocha": "^8.2.1",

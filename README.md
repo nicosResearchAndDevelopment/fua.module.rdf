@@ -1,4 +1,4 @@
-# Module.RDF
+# @nrd/fua.module.rdf
 
 ## Interface
 
