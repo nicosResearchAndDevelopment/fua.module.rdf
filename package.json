@@ -29,7 +29,8 @@
   },
   "devDependencies": {
     "mocha": "^8.2.1",
-    "expect": "^26.6.2"
+    "expect": "^26.6.2",
+    "@nrd/fua.resource.ontology.core": "^1.0.0"
   },
   "scripts": {
     "test": "mocha"
