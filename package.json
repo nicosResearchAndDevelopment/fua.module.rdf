@@ -17,8 +17,8 @@
     "src/*"
   ],
   "dependencies": {
-    "rdf-parse": "^1.7.0",
-    "rdf-serialize": "^1.1.0",
+    "rdf-parse": "^2.3.2",
+    "rdf-serialize": "^2.2.2",
     "n3": "^1.8.0",
     "rdf-validate-shacl": "^0.3.2",
     "jsonpath": "^1.1.1",
