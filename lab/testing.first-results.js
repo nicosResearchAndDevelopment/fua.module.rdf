@@ -12,8 +12,7 @@ const
     SHACLValidator = require('rdf-validate-shacl'),
     rdfLib = require('rdflib'),
     jsonld = require('jsonld'),
-    N3 = require('n3'),
-    fetch = require('node-fetch');
+    N3 = require('n3');
 
 async function loadGraph (param) {
     if(typeof param === 'string') {

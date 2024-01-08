@@ -5,7 +5,6 @@ const
     {createReadStream, readFile}        = require('fs'),
     {fileURLToPath, pathToFileURL, URL} = require('url'),
     isFileURL                           = (re => re.test.bind(re))(/^file:\/\//),
-    fetch                               = require('node-fetch'),
     SHACLValidator                      = require('rdf-validate-shacl'),
     {StreamParser, Writer}              = require('n3'),
     jsonld                              = require('jsonld');
