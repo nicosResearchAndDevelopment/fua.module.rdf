@@ -9,7 +9,7 @@ const
     {default: rdfParser}     = require('rdf-parse'),
     {default: rdfSerializer} = require('rdf-serialize'),
     contentTypes             = Object.freeze([
-        'text/turtle', 'application/ld+json',
+        'text/turtle', 'application/ld+json', 'application/json',
         'application/n-quads', 'application/n-triples', 'application/trig',
         // REM: rdf+xml is currently only supported by the parser, not the serializer
         'application/rdf+xml'
