@@ -1,5 +1,4 @@
 const
-    _              = require('./module.rdf.util.js'),
     {Dataset}      = require('@nrd/fua.module.persistence'),
     SHACLValidator = require('rdf-validate-shacl'),
     n3             = require('n3');
@@ -21,7 +20,7 @@ class N3Store extends n3.Store {
     delete(quad) {
         this.removeQuad(quad);
     }
-} // N3Store
+}
 
 const N3DataFactory = Object.assign({}, n3.DataFactory, {
     dataset: (quads) => new N3Store(quads),
@@ -49,7 +48,7 @@ const N3DataFactory = Object.assign({}, n3.DataFactory, {
             N3DataFactory.fromTerm(quad.graph)
         );
     }
-}); // N3DataFactory
+});
 
 /**
  * @param {Dataset} dataset
@@ -75,12 +74,11 @@ function _datasetToN3Store(dataset) {
 function _n3StoreToDataset(store, factory) {
     const quads = store.getQuads().map(quad => factory.fromQuad(quad));
     return new Dataset(quads, factory);
-} // _n3StoreToDataset
+}
 
 /**
  * @param {Dataset} dataset
  * @param {Dataset} shapeset
- // * @returns {Promise<Dataset>}
  * @returns {Promise<{conforms: boolean, dataset: Dataset}>}
  */
 module.exports = async function (dataset, shapeset) {
@@ -103,4 +101,4 @@ module.exports = async function (dataset, shapeset) {
         conforms: _report.conforms,
         dataset:  _n3StoreToDataset(_report.dataset, dataset.factory)
     };
-}; // exports
+};

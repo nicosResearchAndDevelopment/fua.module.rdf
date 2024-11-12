@@ -1,13 +1,16 @@
 const
-    _                      = require('./module.rdf.util.js'),
+    assert                 = require('@nrd/fua.core.assert'),
+    is                     = require('@nrd/fua.core.is'),
+    objects                = require('@nrd/fua.core.objects'),
     {createReadStream}     = require('fs'),
     {readFile}             = require('fs/promises'),
+    util                   = require('./util.js'),
     {
         join:    joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
     }                      = require('path'),
     {Dataset, TermFactory} = require('@nrd/fua.module.persistence'),
-    rdf                    = require('./module.rdf.js'),
+    rdf                    = require('./rdf.js'),
     _formats               = Object.freeze({
         loadJSON: 'application/fua.load+json',
         loadJS:   'application/fua.load+js'
@@ -50,12 +53,12 @@ async function loadRegular(loaded, {
     [_fields.format]:      format = '',
     [_fields.requires]:    requires = []
 }) {
-    _.assert(_.isString(identifier) && isAbsPath(identifier), `load : ${_fields.identifier} must be an absolute path`);
+    assert(is.string(identifier) && isAbsPath(identifier), `load : ${_fields.identifier} must be an absolute path`);
     title = title || getFileName(identifier, getExtName(identifier));
 
     if (loaded.has(identifier)) return identifier;
     const result = {
-        id: this.termToId(this.namedNode(id || _.generateFileId())),
+        id: this.termToId(this.namedNode(id || util.generateFileId())),
         identifier, title, alternative, format
     };
     loaded.set(identifier, result);
@@ -83,8 +86,8 @@ async function loadReference(loaded, {
     [_fields.identifier]: filePath,
     [_fields.format]:     fileType
 }) {
-    _.assert(_.isString(filePath) && isAbsPath(filePath), `load : ${_fields.identifier} must be an absolute path`);
-    _.assert(fileType === _formats.loadJS || fileType === _formats.loadJSON, `load : invalid ${_fields.format}`);
+    assert(is.string(filePath) && isAbsPath(filePath), `load : ${_fields.identifier} must be an absolute path`);
+    assert(fileType === _formats.loadJS || fileType === _formats.loadJSON, `load : invalid ${_fields.format}`);
 
     let
         fileContent = (fileType === _formats.loadJS)
@@ -104,13 +107,13 @@ async function loadReference(loaded, {
             [_fields.requires]:    requires    = []
         }           = param;
 
-    _.assert(identifier === filePath, `load : expected ${_fields.identifier} not be ${filePath}`);
-    _.assert(format === fileType, `load : expected ${_fields.format} to be ${fileType}`);
+    assert(identifier === filePath, `load : expected ${_fields.identifier} not be ${filePath}`);
+    assert(format === fileType, `load : expected ${_fields.format} to be ${fileType}`);
     title = title || getFileName(identifier, getExtName(identifier));
 
     if (loaded.has(identifier)) return identifier;
     const result = {
-        id: this.termToId(this.namedNode(id || _.generateFileId())),
+        id: this.termToId(this.namedNode(id || util.generateFileId())),
         identifier, title, alternative, format
     };
     loaded.set(identifier, result);
@@ -128,7 +131,7 @@ async function loadReference(loaded, {
  */
 async function loadRequirements(loaded, ...requires) {
     return Promise.all(requires.map(async (param) => {
-        _.assert(_.isObject(param), `load : invalid param`, TypeError);
+        assert(is.object(param), `load : invalid param`, TypeError);
         switch (param[_fields.format]) {
             case _formats.loadJSON:
             case _formats.loadJS:
@@ -146,8 +149,8 @@ async function loadRequirements(loaded, ...requires) {
  * @returns {Promise<Array<Object>>}
  */
 module.exports = async function (param) {
-    _.assert(this instanceof TermFactory, 'load : invalid this', TypeError);
+    assert(this instanceof TermFactory, 'load : invalid this', TypeError);
     const loaded = new Map();
-    await loadRequirements.call(this, loaded, ..._.toArray(param));
+    await loadRequirements.call(this, loaded, ...objects.array(param));
     return Array.from(loaded.values());
 }; // exports

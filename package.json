@@ -1,16 +1,16 @@
 {
   "name": "@nrd/fua.module.rdf",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "exports": {
     ".": {
-      "require": "./src/module.rdf.js"
+      "require": "./src/rdf.js"
     },
     "./term-factory": {
-      "require": "./src/factory/term-factory.default.js"
+      "require": "./src/term-factory.js"
     },
     "./data-factory": {
-      "require": "./src/factory/data-factory.default.js"
+      "require": "./src/data-factory.js"
     }
   },
   "files": [
@@ -22,10 +22,11 @@
     "n3": "^1.8.0",
     "rdf-validate-shacl": "^0.3.2",
     "jsonpath": "^1.1.1",
-    "@nrd/fua.core.util": "^1.0.0",
-    "@nrd/fua.core.uuid": "^1.0.0",
+    "@nrd/fua.core.assert": "^1.0.2",
+    "@nrd/fua.core.is": "^1.0.7",
+    "@nrd/fua.core.uuid": "^1.0.1",
     "@nrd/fua.module.persistence": "^1.0.0",
-    "@nrd/fua.resource.context": "^1.0.0"
+    "@nrd/fua.resource.context": "^1.0.3"
   },
   "overrides": {
     "node-fetch@2.x": {
@@ -35,7 +36,7 @@
   "devDependencies": {
     "mocha": "^10.2.0",
     "expect": "^26.6.2",
-    "@nrd/fua.resource.ontology.core": "^1.0.0"
+    "@nrd/fua.resource.ontology.core": "^1.0.1"
   },
   "scripts": {
     "test": "mocha"

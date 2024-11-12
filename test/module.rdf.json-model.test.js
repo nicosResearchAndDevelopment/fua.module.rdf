@@ -7,8 +7,8 @@ const
     {TermFactory}    = require('@nrd/fua.module.persistence'),
     context          = require('./data/context.json'),
     factory          = new TermFactory(context),
-    rdf              = require('../src/module.rdf.js'),
-    jsonModel        = require('../src/module.rdf.json-model.js');
+    rdf              = require('../src/rdf.js'),
+    jsonModel        = require('../src/json-model.js');
 
 describe('module.rdf.json-model', function () {
 

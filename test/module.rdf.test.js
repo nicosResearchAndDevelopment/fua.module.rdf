@@ -8,7 +8,7 @@ const
     {TermFactory, Dataset} = require('@nrd/fua.module.persistence'),
     context                = require('./data/context.json'),
     factory                = new TermFactory(context),
-    rdf                    = require('../src/module.rdf.js');
+    rdf                    = require('../src/rdf.js');
 
 expect.extend({
     async toBeQuadStream(received, minQuads = 1, maxQuads = Infinity) {
@@ -189,8 +189,9 @@ describe('module.rdf', function () {
             datasets    = Object.fromEntries(dataFiles.map(entry => [entry.title, entry.dataset])),
             shaclReport = await rdf.shaclValidate(datasets['my-data'], datasets['my-shapes']);
 
-        expect(shaclReport).toBeInstanceOf(Dataset);
-        expect(shaclReport.factory).toBe(datasets['my-data'].factory);
+        expect(typeof shaclReport.conforms).toBe('boolean');
+        expect(shaclReport.dataset).toBeInstanceOf(Dataset);
+        expect(shaclReport.dataset.factory).toBe(datasets['my-data'].factory);
         //console.log(await rdf.serializeDataset(shaclReport, 'text/turtle'));
         //debugger;
     });

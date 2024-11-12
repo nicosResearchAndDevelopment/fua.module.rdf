@@ -1,9 +1,10 @@
 const
     rdf                      = exports,
-    _                        = require('./module.rdf.util.js'),
-    loadDataFiles            = require('./module.rdf.load.js'),
-    shaclValidate            = require('./module.rdf.shacl.js'),
-    jsonModel                = require('./module.rdf.json-model.js'),
+    assert                   = require('@nrd/fua.core.assert'),
+    is                       = require('@nrd/fua.core.is'),
+    loadDataFiles            = require('./load.js'),
+    shaclValidate            = require('./shacl.js'),
+    jsonModel                = require('./json-model.js'),
     {TermFactory, Dataset}   = require('@nrd/fua.module.persistence'),
     {Readable, Transform}    = require('stream'),
     {default: rdfParser}     = require('rdf-parse'),
@@ -23,7 +24,7 @@ rdf.contentTypes = contentTypes;
  * @returns {{namedNode, blankNode, literal, variable, defaultGraph, quad, fromTerm, fromQuad, dataset}}
  */
 rdf.wrapFactory = function (factory) {
-    _.assert(factory instanceof TermFactory, 'wrapFactory : invalid factory', TypeError);
+    assert(factory instanceof TermFactory, 'wrapFactory : invalid factory', TypeError);
     return {
         namedNode:    (iri) => factory.namedNode(iri),
         blankNode:    (id) => factory.blankNode(id),
@@ -45,13 +46,13 @@ rdf.wrapFactory = function (factory) {
  * @returns {Readable<Quad>}
  */
 rdf.parseStream = function (textStream, contentType, factory, baseIRI) {
-    _.assert(textStream && _.isFunction(textStream.pipe), 'parseStream : invalid textStream', TypeError);
-    _.assert(_.isString(contentType), 'parseStream : invalid contentType', TypeError);
-    _.assert(factory instanceof TermFactory, 'parseStream : invalid factory', TypeError);
-    if (baseIRI) _.assert(_.isString(baseIRI), 'parseStream : invalid factory');
+    assert(textStream && is.function(textStream.pipe), 'parseStream : invalid textStream', TypeError);
+    assert(is.string(contentType), 'parseStream : invalid contentType', TypeError);
+    assert(factory instanceof TermFactory, 'parseStream : invalid factory', TypeError);
+    if (baseIRI) assert(is.string(baseIRI), 'parseStream : invalid factory');
 
-    _.assert(!textStream.readableObjectMode, 'parseStream : textStream in objectMode');
-    _.assert(contentTypes.includes(contentType), 'parseStream : unknown contentType ' + contentType);
+    assert(!textStream.readableObjectMode, 'parseStream : textStream in objectMode');
+    assert(contentTypes.includes(contentType), 'parseStream : unknown contentType ' + contentType);
 
     const
         quadStream      = rdfParser.parse(textStream, {contentType, baseIRI: baseIRI || undefined}),
@@ -79,12 +80,12 @@ rdf.parseStream = function (textStream, contentType, factory, baseIRI) {
  * @returns {Readable<string>}
  */
 rdf.serializeStream = function (quadStream, contentType, factory) {
-    _.assert(quadStream && _.isFunction(quadStream.pipe), 'serializeStream : invalid quadStream', TypeError);
-    _.assert(_.isString(contentType), 'serializeStream : invalid contentType', TypeError);
-    _.assert(factory instanceof TermFactory, 'serializeStream : invalid factory', TypeError);
+    assert(quadStream && is.function(quadStream.pipe), 'serializeStream : invalid quadStream', TypeError);
+    assert(is.string(contentType), 'serializeStream : invalid contentType', TypeError);
+    assert(factory instanceof TermFactory, 'serializeStream : invalid factory', TypeError);
 
-    _.assert(quadStream.readableObjectMode, 'serializeStream : quadStream not in objectMode');
-    _.assert(contentTypes.includes(contentType), 'serializeStream : unknown contentType');
+    assert(quadStream.readableObjectMode, 'serializeStream : quadStream not in objectMode');
+    assert(contentTypes.includes(contentType), 'serializeStream : unknown contentType');
 
     const
         transformStream = new Transform({
@@ -92,7 +93,7 @@ rdf.serializeStream = function (quadStream, contentType, factory) {
             writableObjectMode: true,
             transform(quad, encoding, callback) {
                 try {
-                    _.assert(factory.isQuad(quad), 'serializeStream : invalid quad', TypeError);
+                    assert(factory.isQuad(quad), 'serializeStream : invalid quad', TypeError);
                     const transformed = factory.resolveQuad(quad);
                     callback(null, transformed);
                 } catch (err) {
@@ -111,7 +112,7 @@ rdf.serializeStream = function (quadStream, contentType, factory) {
     //    prefixStream = Readable.from([...prefixArray, '\n']),
     //    textStream   = rdfSerializer.serialize(quadStream, {contentType});
     //
-    //return _.concatStreams(prefixStream, textStream);
+    //return util.concatStreams(prefixStream, textStream);
 }; // rdf.serializeStream
 
 /**
@@ -120,9 +121,9 @@ rdf.serializeStream = function (quadStream, contentType, factory) {
  * @returns {Promise<string>}
  */
 rdf.serializeDataset = async function (dataset, contentType) {
-    _.assert(dataset instanceof Dataset, 'serializeDataset : invalid dataset', TypeError);
-    _.assert(_.isString(contentType), 'serializeDataset : invalid contentType', TypeError);
-    _.assert(contentTypes.includes(contentType), 'serializeDataset : unknown contentType');
+    assert(dataset instanceof Dataset, 'serializeDataset : invalid dataset', TypeError);
+    assert(is.string(contentType), 'serializeDataset : invalid contentType', TypeError);
+    assert(contentTypes.includes(contentType), 'serializeDataset : unknown contentType');
 
     const
         textStream     = rdf.serializeStream(dataset.toStream(), contentType, dataset.factory),
@@ -176,11 +177,11 @@ rdf.serializeDataset = async function (dataset, contentType) {
  * @returns {Readable<Quad>}
  */
 rdf.transformStream = function (quadStream, transformer, factory) {
-    _.assert(quadStream && _.isFunction(quadStream.pipe), 'transformStream : invalid quadStream', TypeError);
-    _.assert(_.isFunction(transformer), 'transformStream : invalid transformer', TypeError);
-    _.assert(factory instanceof TermFactory, 'transformStream : invalid factory', TypeError);
+    assert(quadStream && is.function(quadStream.pipe), 'transformStream : invalid quadStream', TypeError);
+    assert(is.function(transformer), 'transformStream : invalid transformer', TypeError);
+    assert(factory instanceof TermFactory, 'transformStream : invalid factory', TypeError);
 
-    _.assert(quadStream.readableObjectMode, 'transformStream : quadStream not in objectMode');
+    assert(quadStream.readableObjectMode, 'transformStream : quadStream not in objectMode');
 
     const
         transformStream = new Transform({
@@ -188,10 +189,10 @@ rdf.transformStream = function (quadStream, transformer, factory) {
             writableObjectMode: true,
             async transform(quad, encoding, callback) {
                 try {
-                    _.assert(factory.isQuad(quad), 'transformStream : invalid quad', TypeError);
+                    assert(factory.isQuad(quad), 'transformStream : invalid quad', TypeError);
                     const transformed = await transformer(quad, factory);
                     if (transformed) {
-                        _.assert(factory.isQuad(quad), 'transformStream : invalid transformed', TypeError);
+                        assert(factory.isQuad(quad), 'transformStream : invalid transformed', TypeError);
                         callback(null, transformed);
                     } else {
                         callback();
@@ -218,8 +219,8 @@ rdf.transformStream = function (quadStream, transformer, factory) {
  * @returns {Promise<Array<FuaLoadRDFResult>>}
  */
 rdf.loadDataFiles = async function (config, factory = defaultFactory) {
-    _.assert(_.isObject(config), 'loadDataFiles : invalid config');
-    _.assert(factory instanceof TermFactory, 'loadDataFiles : invalid factory');
+    assert(is.object(config), 'loadDataFiles : invalid config');
+    assert(factory instanceof TermFactory, 'loadDataFiles : invalid factory');
     return await loadDataFiles.call(factory, config);
 }; // rdf.loadDataFiles
 
@@ -269,9 +270,9 @@ const _graphOptionPresets = {
  * @returns {Map<URI, Object>}
  */
 rdf.generateGraph = function (dataset, options = 'default') {
-    _.assert(dataset instanceof Dataset, 'generateGraph : invalid dataset', TypeError);
-    if (_.isString(options)) {
-        _.assert(options in _graphOptionPresets, 'generateGraph : preset "' + options + '" not found');
+    assert(dataset instanceof Dataset, 'generateGraph : invalid dataset', TypeError);
+    if (is.string(options)) {
+        assert(options in _graphOptionPresets, 'generateGraph : preset "' + options + '" not found');
         options = _graphOptionPresets[options];
     }
     return jsonModel.Graph.fromDataset(dataset, options);
@@ -283,7 +284,7 @@ rdf.generateGraph = function (dataset, options = 'default') {
  * @returns {Promise<Dataset>}
  */
 rdf.shaclValidate = async function (dataset, shapeset) {
-    _.assert(dataset instanceof Dataset, 'shaclValidate : invalid dataset', TypeError);
-    _.assert(shapeset instanceof Dataset, 'shaclValidate : invalid shapeset', TypeError);
+    assert(dataset instanceof Dataset, 'shaclValidate : invalid dataset', TypeError);
+    assert(shapeset instanceof Dataset, 'shaclValidate : invalid shapeset', TypeError);
     return await shaclValidate(dataset, shapeset);
 }; // rdf.shaclValidate

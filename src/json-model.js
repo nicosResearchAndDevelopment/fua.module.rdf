@@ -1,21 +1,24 @@
 const
     model       = exports,
     jsonpath    = require('jsonpath'),
-    util        = require('./module.rdf.util.js'),
-    persistence = require('@nrd/fua.module.persistence');
+    assert      = require('@nrd/fua.core.assert'),
+    is          = require('@nrd/fua.core.is'),
+    objects     = require('@nrd/fua.core.objects'),
+    persistence = require('@nrd/fua.module.persistence'),
+    util        = require('./util.js');
 
 model.Literal = class Literal {
 
     constructor(value, language, datatype) {
-        util.assert(util.isString(value), 'expected value to be a string', TypeError);
-        util.assert(!language || util.isLanguageString(language), 'expected language to be a Language', TypeError);
-        util.assert(!datatype || util.isIRIString(datatype) || datatype instanceof model.Resource
-            || (util.isArray(datatype) && datatype.every(entry => util.isIRIString(entry) || entry instanceof model.Resource)),
+        assert(is.string(value), 'expected value to be a string', TypeError);
+        assert(!language || util.isLanguageString(language), 'expected language to be a Language', TypeError);
+        assert(!datatype || util.isIRIString(datatype) || datatype instanceof model.Resource
+            || (is.array(datatype) && datatype.every(entry => util.isIRIString(entry) || entry instanceof model.Resource)),
             'expected datatype to be an IRI or a Resource', TypeError);
         this['@value'] = value;
         if (language) this['@language'] = language;
         else if (datatype) this['@type'] = datatype;
-        util.lockProp(this, '@value', '@language', '@type');
+        objects.lock.props(this, '@value', '@language', '@type');
     } // constructor
 
     valueOf() {
@@ -27,9 +30,9 @@ model.Literal = class Literal {
 model.Resource = class Resource {
 
     constructor(id) {
-        util.assert(util.isIdentifierString(id), 'expected id to be an identifier', TypeError);
+        assert(util.isIdentifierString(id), 'expected id to be an identifier', TypeError);
         this['@id'] = id;
-        util.lockProp(this, '@id');
+        objects.lock.props(this, '@id');
     } // constructor
 
 }; // model.Resource
@@ -38,7 +41,7 @@ model.List = class List {
 
     constructor(...elems) {
         this['@list'] = [];
-        util.lockProp(this, '@list');
+        objects.lock.props(this, '@list');
         elems.flat(1).forEach(this.add.bind(this));
     } // constructor
 
@@ -74,8 +77,8 @@ model.Graph = class Graph extends Map {
             resource = id;
             id       = resource['@id'];
         } else {
-            util.assert(resource instanceof model.Resource, 'expected resource to be a Resource', TypeError);
-            util.assert(id === resource['@id'], 'expected id to be the @id of the resource');
+            assert(resource instanceof model.Resource, 'expected resource to be a Resource', TypeError);
+            assert(id === resource['@id'], 'expected id to be the @id of the resource');
         }
         super.set(id, resource);
         return resource;
@@ -86,8 +89,8 @@ model.Graph = class Graph extends Map {
      * @returns {model.Resource}
      */
     add(resource) {
-        util.assert(resource instanceof model.Resource, 'expected resource to be a Resource', TypeError);
-        util.assert(!super.has(resource['@id']), 'expected @id of the resource to no exist already -> use .set to overwrite resources instead');
+        assert(resource instanceof model.Resource, 'expected resource to be a Resource', TypeError);
+        assert(!super.has(resource['@id']), 'expected @id of the resource to no exist already -> use .set to overwrite resources instead');
         super.set(resource['@id'], resource);
         return resource;
     } // add
@@ -111,7 +114,7 @@ model.Graph = class Graph extends Map {
     } // toArray
 
     filter(iteratee) {
-        util.assert(util.isFunction(iteratee), 'expected iteratee to be a function', TypeError);
+        assert(is.function(iteratee), 'expected iteratee to be a function', TypeError);
         const result = [];
         for (let [id, resource] of super.entries()) {
             if (iteratee(resource, id, this)) {
@@ -122,7 +125,7 @@ model.Graph = class Graph extends Map {
     } // filter
 
     queryAll(pathExpression) {
-        util.assert(util.isString(pathExpression), 'expected pathExpression to be a string', TypeError);
+        assert(is.string(pathExpression), 'expected pathExpression to be a string', TypeError);
         const results = new Set();
         for (let resource of super.values()) {
             jsonpath
@@ -140,7 +143,7 @@ model.Graph = class Graph extends Map {
         const srchTypes = types.map(type => type['@id'] || type);
         const result    = [];
         for (let resource of super.values()) {
-            const resTypes = util.toArray(resource['@type']).map(type => type['@id'] || type);
+            const resTypes = objects.array(resource['@type']).map(type => type['@id'] || type);
             if (srchTypes.every(type => resTypes.includes(type))) {
                 result.push(resource);
             }
@@ -156,7 +159,7 @@ model.Graph = class Graph extends Map {
         const srchTypes = types.map(type => type['@id'] || type);
         const result    = [];
         for (let resource of super.values()) {
-            const resTypes = util.toArray(resource['@type']).map(type => type['@id'] || type);
+            const resTypes = objects.array(resource['@type']).map(type => type['@id'] || type);
             if (srchTypes.some(type => resTypes.includes(type))) {
                 result.push(resource);
             }
@@ -180,8 +183,8 @@ model.Graph = class Graph extends Map {
      * @param {persistence.TermFactory} factory
      */
     toDataset(factory) {
-        util.assert(factory instanceof persistence.TermFactory, 'expected factory to be a TermFactory', TypeError);
-        util.assert(false, 'not implemented yet');
+        assert(factory instanceof persistence.TermFactory, 'expected factory to be a TermFactory', TypeError);
+        assert(false, 'not implemented yet');
         // TODO
     } // toDataset
 
@@ -198,8 +201,8 @@ model.Graph = class Graph extends Map {
      * @returns {model.Graph}
      */
     static fromDataset(dataset, options = {}) {
-        util.assert(dataset instanceof persistence.Dataset, 'expected dataset to be a Dataset', TypeError);
-        util.assert(util.isObject(options), 'expected options to be an object', TypeError);
+        assert(dataset instanceof persistence.Dataset, 'expected dataset to be a Dataset', TypeError);
+        assert(is.object(options), 'expected options to be an object', TypeError);
 
         const
             optMeshed   = options.meshed ?? true,
@@ -228,7 +231,7 @@ model.Graph = class Graph extends Map {
         function _extendResource(subjNode, predKey, objNode) {
             if (!(predKey in subjNode)) {
                 subjNode[predKey] = optCompact ? objNode : [objNode];
-            } else if (util.isArray(subjNode[predKey])) {
+            } else if (is.array(subjNode[predKey])) {
                 subjNode[predKey].push(objNode);
             } else {
                 subjNode[predKey] = [subjNode[predKey], objNode];
@@ -275,7 +278,7 @@ model.Graph = class Graph extends Map {
 
         if (optLists) {
             function _isListNode(objNode) {
-                if (!util.isObject(objNode)) return false;
+                if (!is.object(objNode)) return false;
                 if (objNode['@id'] === rdf_nil) return true;
                 if (!optMeshed) objNode = graph.get(objNode['@id']) || missing.get(objNode['@id']) || objNode;
                 return rdf_first in objNode;
@@ -297,7 +300,7 @@ model.Graph = class Graph extends Map {
                 for (let subjNode of nodeIterator) {
                     for (let [predKey, objNode] of Object.entries(subjNode)) {
                         if (predKey.startsWith('@')) continue;
-                        if (util.isArray(objNode)) {
+                        if (is.array(objNode)) {
                             for (let [index, entryNode] of objNode.entries()) {
                                 if (_isListNode(entryNode)) objNode[index] = _collectList(entryNode);
                             }

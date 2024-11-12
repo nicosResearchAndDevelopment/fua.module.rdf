@@ -5,7 +5,7 @@ const
     {DataFactory}    = require('@nrd/fua.module.persistence'),
     context          = require('./data/context.json'),
     factory          = new DataFactory(context),
-    {loadDataFiles}  = require('../src/module.rdf.js');
+    {loadDataFiles}  = require('../src/rdf.js');
 
 describe('module.rdf : loadDataFiles', function () {
 
