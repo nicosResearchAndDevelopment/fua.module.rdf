@@ -1,10 +1,10 @@
 const
     model       = exports,
     jsonpath    = require('jsonpath'),
-    assert      = require('@nrd/fua.core.assert'),
-    is          = require('@nrd/fua.core.is'),
-    objects     = require('@nrd/fua.core.objects'),
-    persistence = require('@nrd/fua.module.persistence'),
+    assert      = require('@fua/core.assert'),
+    is          = require('@fua/core.is'),
+    objects     = require('@fua/core.objects'),
+    persistence = require('@fua/module.persistence'),
     util        = require('./util.js');
 
 model.Literal = class Literal {

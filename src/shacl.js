@@ -1,5 +1,5 @@
 const
-    {Dataset}      = require('@nrd/fua.module.persistence'),
+    {Dataset}      = require('@fua/module.persistence'),
     SHACLValidator = require('rdf-validate-shacl'),
     n3             = require('n3');
 

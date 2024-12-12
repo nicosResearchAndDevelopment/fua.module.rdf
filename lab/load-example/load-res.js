@@ -2,7 +2,7 @@ const
     {inspect}        = require('util'),
     {join: joinPath} = require('path'),
     // new persistence module
-    persistence      = require('@nrd/fua.module.persistence'),
+    persistence      = require('@fua/module.persistence'),
     factory          = new persistence.TermFactory(),
     // experimental load function
     loadSpace        = require('../../src/module.rdf.load.js'),

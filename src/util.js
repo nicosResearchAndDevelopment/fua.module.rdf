@@ -1,7 +1,7 @@
 const
     {PassThrough} = require('stream'),
-    is            = require('@nrd/fua.core.is'),
-    uuid          = require('@nrd/fua.core.uuid'),
+    is            = require('@fua/core.is'),
+    uuid          = require('@fua/core.uuid'),
     xsd_prefix    = 'xsd:',
     xsd_iri       = 'http://www.w3.org/2001/XMLSchema#';
 

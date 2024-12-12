@@ -4,7 +4,7 @@ const
     logDeep          = (obj) => console.log(inspect(obj, {depth: Infinity})),
     expect           = require('expect'),
     {join: joinPath} = require('path'),
-    {TermFactory}    = require('@nrd/fua.module.persistence'),
+    {TermFactory}    = require('@fua/module.persistence'),
     context          = require('./data/context.json'),
     factory          = new TermFactory(context),
     rdf              = require('../src/rdf.js'),

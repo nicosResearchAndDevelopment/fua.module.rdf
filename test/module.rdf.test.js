@@ -5,7 +5,7 @@ const
     expect                 = require('expect'),
     {join: joinPath}       = require('path'),
     {createReadStream}     = require('fs'),
-    {TermFactory, Dataset} = require('@nrd/fua.module.persistence'),
+    {TermFactory, Dataset} = require('@fua/module.persistence'),
     context                = require('./data/context.json'),
     factory                = new TermFactory(context),
     rdf                    = require('../src/rdf.js');

@@ -1,7 +1,7 @@
 const
-    assert                 = require('@nrd/fua.core.assert'),
-    is                     = require('@nrd/fua.core.is'),
-    objects                = require('@nrd/fua.core.objects'),
+    assert                 = require('@fua/core.assert'),
+    is                     = require('@fua/core.is'),
+    objects                = require('@fua/core.objects'),
     {createReadStream}     = require('fs'),
     {readFile}             = require('fs/promises'),
     util                   = require('./util.js'),
@@ -9,7 +9,7 @@ const
         join:    joinPath, isAbsolute: isAbsPath,
         dirname: getDirName, basename: getFileName, extname: getExtName
     }                      = require('path'),
-    {Dataset, TermFactory} = require('@nrd/fua.module.persistence'),
+    {Dataset, TermFactory} = require('@fua/module.persistence'),
     rdf                    = require('./rdf.js'),
     _formats               = Object.freeze({
         loadJSON: 'application/fua.load+json',

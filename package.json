@@ -1,5 +1,5 @@
 {
-  "name": "@nrd/fua.module.rdf",
+  "name": "@fua/module.rdf",
   "version": "1.0.2",
   "description": "",
   "exports": {
@@ -22,11 +22,11 @@
     "n3": "^1.8.0",
     "rdf-validate-shacl": "^0.3.2",
     "jsonpath": "^1.1.1",
-    "@nrd/fua.core.assert": "^1.0.2",
-    "@nrd/fua.core.is": "^1.0.7",
-    "@nrd/fua.core.uuid": "^1.0.1",
-    "@nrd/fua.module.persistence": "^1.0.0",
-    "@nrd/fua.resource.context": "^1.0.3"
+    "@fua/core.assert": "^1.0.2",
+    "@fua/core.is": "^1.0.7",
+    "@fua/core.uuid": "^1.0.1",
+    "@fua/module.persistence": "^1.0.0",
+    "@fua/resource.context": "^1.0.3"
   },
   "overrides": {
     "node-fetch@2.x": {
@@ -35,8 +35,7 @@
   },
   "devDependencies": {
     "mocha": "^10.2.0",
-    "expect": "^26.6.2",
-    "@nrd/fua.resource.ontology.core": "^1.0.1"
+    "expect": "^26.6.2"
   },
   "scripts": {
     "test": "mocha"
@@ -48,13 +47,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@git02.int.nsc.ag:10022/research/fua/module/rdf.git"
+    "url": "ssh://git@github.com:nicosResearchAndDevelopment/fua.module.rdf.git"
   },
   "keywords": [
     "rdf",
     "jsonld",
     "turtle"
   ],
-  "author": "spetrac@nicos-ag.com",
-  "license": "UNLICENSED"
+  "author": "Simon Petrac <pfoerdie@gmail.com>",
+  "license": "MIT"
 }

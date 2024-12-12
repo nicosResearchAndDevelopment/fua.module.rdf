@@ -1,11 +1,11 @@
-# @nrd/fua.module.rdf
+# @fua/module.rdf
 
 ## Interface
 
 ```ts
 import 'rdf-parse'
 import 'rdf-serialize'
-import '@nrd/fua.module.persistence'
+import '@fua/module.persistence'
 
 interface rdf {
     contentTypes: ['text/turtle', 'application/ld+json', 'text/rdf+xml', 'application/n-quads', 'application/n-triples', 'application/trig'];
